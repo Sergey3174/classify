@@ -1,0 +1,970 @@
+/* Classify — Telegram-native design system in the Fragment dark palette
+   (colours sampled from fragment.com). The app keeps its own dark identity
+   regardless of the user's Telegram theme; `data-theme="light"` restores
+   the Telegram iOS light palette that follows --tg-theme-* variables. */
+
+:root {
+  --bg: #1a2026;
+  --bg-grouped: #1a2026;
+  --section: #212a33;
+  --elevated: #293440;
+  --text: #ffffff;
+  --hint: #8c9aa9;
+  --subtitle: #8c9aa9;
+  --section-header: #a5b8cc;
+  --link: #4db2ff;
+  --accent: #248bda;
+  --on-accent: #ffffff;
+  --accent-text: #4db2ff;
+  --destructive: #ef5b5b;
+  --separator: rgba(165, 184, 204, 0.1);
+
+  --accent-soft: rgba(77, 178, 255, 0.12);
+  --fill: rgba(165, 184, 204, 0.1);
+  --fill-strong: rgba(165, 184, 204, 0.18);
+  --success: #3fc66b;
+  --warning: #ffa63d;
+  --on-warning: #ffc27a;
+  --on-success: #7fe0a0;
+  --glass: rgba(17, 20, 23, 0.55);
+  --knob: #ffffff;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: var(--tg-theme-bg-color, #ffffff);
+  --bg-grouped: var(--tg-theme-secondary-bg-color, #f2f2f7);
+  --section: var(--tg-theme-section-bg-color, #ffffff);
+  --elevated: var(--tg-theme-section-bg-color, #ffffff);
+  --text: var(--tg-theme-text-color, #000000);
+  --hint: var(--tg-theme-hint-color, #8e8e93);
+  --subtitle: var(--tg-theme-subtitle-text-color, #8e8e93);
+  --section-header: var(--tg-theme-section-header-text-color, #6d6d72);
+  --link: var(--tg-theme-link-color, #007aff);
+  --accent: var(--tg-theme-button-color, #007aff);
+  --on-accent: var(--tg-theme-button-text-color, #ffffff);
+  --accent-text: var(--tg-theme-accent-text-color, #007aff);
+  --destructive: var(--tg-theme-destructive-text-color, #ff3b30);
+  --separator: var(--tg-theme-section-separator-color, rgba(60, 60, 67, 0.16));
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --fill: color-mix(in srgb, var(--hint) 14%, transparent);
+  --fill-strong: color-mix(in srgb, var(--hint) 22%, transparent);
+  --success: #34c759;
+  --warning: #ff9500;
+  --on-warning: #c76a00;
+  --on-success: #1f8a3b;
+  --glass: rgba(0, 0, 0, 0.45);
+  color-scheme: light;
+}
+
+:root {
+
+  --font: 'Google Sans Flex', 'Product Sans', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Segoe UI', sans-serif;
+
+  --r-cell: 12px;
+  --r-card: 12px;
+  --r-control: 10px;
+  --gutter: 12px;
+  --thead: #293440;
+  --chip: #242e38;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  --seg-on: #3a4756;
+}
+
+:root[data-theme='light'] {
+  --seg-on: var(--section);
+  --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
+button {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- type scale (iOS) ---------- */
+.t-large { font-size: 26px; line-height: 32px; font-weight: 700; }
+.t-title1 { font-size: 22px; line-height: 30px; font-weight: 700; }
+.t-title2 { font-size: 18px; line-height: 28px; font-weight: 700; }
+.t-title3 { font-size: 16px; line-height: 22px; font-weight: 700; }
+.t-headline { font-size: 14px; line-height: 18px; font-weight: 700; }
+.t-body { font-size: 14px; line-height: 20px; }
+.t-sub { font-size: 13px; line-height: 17px; }
+.t-foot { font-size: 12px; line-height: 16px; }
+.t-cap { font-size: 11px; line-height: 14px; }
+.hint { color: var(--hint); }
+
+/* ---------- page shells ---------- */
+.page {
+  min-height: 100dvh;
+  padding-bottom: calc(96px + var(--safe-bottom));
+  background: var(--bg);
+}
+
+.page--grouped {
+  background: var(--bg-grouped);
+}
+
+.page--flush {
+  padding-bottom: calc(24px + var(--safe-bottom));
+}
+
+/* Browser-only stand-in for Telegram's native header with Back button */
+.devbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  background: color-mix(in srgb, var(--bg-grouped) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--separator);
+}
+
+.devbar--plain {
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+}
+
+.devbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  padding-right: 8px;
+  color: var(--link);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.devbar__title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 700;
+  font-size: 14px;
+  max-width: calc(100% - 190px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- grouped sections & cells ---------- */
+.section {
+  margin: 0 var(--gutter) 16px;
+}
+
+.section__header {
+  padding: 0 4px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: var(--hint);
+}
+
+.section__header--row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.section__footer {
+  padding: 8px 4px 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--hint);
+}
+
+.section__body {
+  background: var(--section);
+  border-radius: var(--r-cell);
+  overflow: hidden;
+}
+
+.section__body--pad {
+  padding: 12px 14px;
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 14px;
+  text-align: left;
+  background: var(--section);
+  transition: background-color 0.2s;
+}
+
+button.cell:active,
+a.cell:active {
+  background: var(--fill);
+}
+
+.cell + .cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: var(--sep-inset, 14px);
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.cell--icon {
+  --sep-inset: 50px;
+}
+
+.cell__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cell__title {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.cell__subtitle {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--hint);
+}
+
+.cell__value {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 13px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cell__chev {
+  color: var(--fill-strong);
+  flex: none;
+}
+
+.tile-icon {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: var(--r-control);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.15s var(--ease-out), opacity 0.2s, background-color 0.2s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+  opacity: 0.88;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn--tinted {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.btn--plain {
+  color: var(--link);
+  font-weight: 500;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn--sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* Browser-only stand-in for Telegram's MainButton */
+.main-action {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  padding: 10px var(--gutter) calc(10px + var(--safe-bottom));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 0.5px solid var(--separator);
+}
+
+.main-action--grouped {
+  background: color-mix(in srgb, var(--bg-grouped) 88%, transparent);
+}
+
+/* Round action buttons, the Telegram Wallet signature */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 0 var(--gutter);
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--accent-text);
+}
+
+.action__circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  transition: transform 0.18s var(--ease-out);
+}
+
+.action--primary .action__circle {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.action:active .action__circle {
+  transform: scale(0.92);
+}
+
+/* ---------- inputs ---------- */
+.searchfield {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--section);
+  color: var(--hint);
+}
+
+.searchfield input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.searchfield input::placeholder {
+  color: var(--hint);
+}
+
+.field {
+  display: block;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text);
+  resize: none;
+}
+
+.field::placeholder {
+  color: var(--hint);
+}
+
+.counter {
+  font-size: 11px;
+  color: var(--hint);
+  text-align: right;
+}
+
+.counter--over {
+  color: var(--destructive);
+}
+
+/* iOS switch */
+.switch {
+  position: relative;
+  flex: none;
+  width: 42px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--fill-strong);
+  transition: background-color 0.25s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+  transition: transform 0.25s var(--ease-out);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--success);
+}
+
+.switch[aria-checked='true']::after {
+  transform: translateX(16px);
+}
+
+/* Segmented control */
+.segmented {
+  display: flex;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--section);
+}
+
+.segmented button {
+  flex: 1;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--hint);
+  white-space: nowrap;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--seg-on);
+  color: var(--text);
+}
+
+/* Chips */
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 var(--gutter);
+  scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--chip);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Pills / badges */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill--accent { background: var(--accent-soft); color: var(--accent-text); }
+.pill--warning { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--on-warning); }
+.pill--success { background: color-mix(in srgb, var(--success) 16%, transparent); color: var(--on-success); }
+.pill--muted { background: var(--fill); color: var(--hint); }
+.pill--glass {
+  background: var(--glass);
+  color: #fff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ---------- avatar ---------- */
+.avatar {
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--fill);
+}
+
+/* ---------- listing card (grid) ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 8px;
+  padding: 0 var(--gutter);
+}
+
+.card {
+  display: block;
+  min-width: 0;
+  transition: transform 0.18s var(--ease-out);
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.card__media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  background: var(--fill);
+}
+
+.card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card__badge {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+}
+
+.card__count {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+}
+
+.fav {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+}
+
+.fav[aria-pressed='true'] {
+  color: #ff3b5c;
+  background: rgba(255, 255, 255, 0.92);
+  animation: fav-pop 0.35s var(--ease-out);
+}
+
+@keyframes fav-pop {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.card__price {
+  margin-top: 7px;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+}
+
+.card__unit {
+  font-weight: 400;
+  color: var(--hint);
+  font-size: 12px;
+}
+
+.card__title {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 17px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--hint);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta svg {
+  flex: none;
+}
+
+/* ---------- list row (favorites / my listings) ---------- */
+.row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--section);
+  position: relative;
+  text-align: left;
+  width: 100%;
+}
+
+.row + .row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 86px;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.row__thumb {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--fill);
+}
+
+.row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- bottom sheet ---------- */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.4);
+  animation: fade-in 0.25s ease-out;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 51;
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-grouped);
+  border-radius: 12px 12px 0 0;
+  box-shadow: var(--shadow-sheet);
+  animation: sheet-in 0.42s var(--ease-out);
+}
+
+.sheet__grabber {
+  width: 36px;
+  height: 5px;
+  margin: 6px auto 0;
+  border-radius: 3px;
+  background: var(--fill-strong);
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 12px;
+}
+
+.sheet__close {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--fill);
+  color: var(--hint);
+}
+
+.sheet__body {
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.sheet__foot {
+  padding: 10px var(--gutter) calc(12px + var(--safe-bottom));
+  border-top: 0.5px solid var(--separator);
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(92px + var(--safe-bottom));
+  z-index: 60;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 32px);
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--elevated);
+  color: var(--text);
+  border: 0.5px solid var(--separator);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: toast-in 0.35s var(--ease-out);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ---------- skeleton & empty ---------- */
+.skeleton {
+  background: linear-gradient(90deg, var(--fill) 25%, var(--fill-strong) 37%, var(--fill) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 28px;
+  gap: 6px;
+}
+
+.empty__icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ---------- horizontal scrollers ---------- */
+.hscroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 0 var(--gutter);
+  scroll-padding: 0 var(--gutter);
+  scrollbar-width: none;
+}
+
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.hscroll > * {
+  scroll-snap-align: start;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- location picker rows ---------- */
+.place-row {
+  position: relative;
+}
+
+.place-row + .place-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 50px;
+  height: 0.5px;
+  background: var(--separator);
+  z-index: 1;
+}
+
+.place-row__pin {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  background: var(--fill);
+  color: var(--hint);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.place-row[data-on='true'] .place-row__pin {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.place-row__districts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 14px 12px 50px;
+  animation: fade-in 0.25s ease-out;
+}
+
+.place-row__districts .chip:not([aria-pressed='true']) {
+  background: var(--elevated);
+}
