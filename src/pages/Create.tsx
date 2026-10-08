@@ -3,25 +3,35 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { CategoryTile } from '../components/CategoryIcon'
-import { MainAction, Segmented, Switch, TopBar } from '../components/Chrome'
+import { AppBar, MainAction, MoneyInput, Segmented, Switch } from '../components/Chrome'
 import { ListingCard } from '../components/ListingCard'
+import { Sheet } from '../components/Sheets'
 import { pickerPhotos } from '../mocks/listings'
-import { categories, categoryById, cities, cityById } from '../mocks/reference'
-import { useApp } from '../store/app'
+import { categories, categoryById, cities, cityById, currencies, currencyOf } from '../mocks/reference'
+import { useApp } from '../store/useApp'
+import { useBackHandler, useGoBack } from '../navigation'
 import { confirmDialog, haptic } from '../telegram/telegram'
 import type { Condition, Listing, ListingDraft } from '../types'
+import { formatMoney } from '../utils/format'
+import { RulesContent } from './Rules'
 
-const STEPS = ['Категория', 'Фото', 'Описание', 'Где', 'Проверка'] as const
+// «Где» comes before «Описание»: the city fixes the currency the price is entered in
+const STEPS = ['Категория', 'Фото', 'Где', 'Описание', 'Проверка'] as const
 const TITLE_MAX = 60
 const DESC_MAX = 1000
 const PHOTOS_MAX = 10
 
 export default function Create() {
   const navigate = useNavigate()
+  const goBack = useGoBack()
   const { location } = useApp()
   const [step, setStep] = useState(0)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<Listing | null>(null)
+  // fixed once when the wizard opens, so the preview does not change on every render
+  const [startedAt] = useState(() => new Date().toISOString())
+  // rules open in a sheet here: leaving the wizard for /rules would lose the draft
+  const [rulesOpen, setRulesOpen] = useState(false)
   const [d, setD] = useState<ListingDraft>({
     photos: [],
     title: '',
@@ -34,12 +44,13 @@ export default function Create() {
     delivery: false,
   })
   const set = (patch: Partial<ListingDraft>) => setD((prev) => ({ ...prev, ...patch }))
+  const cur = currencies[currencyOf(d.cityId ?? location.cityId)]
 
   const valid = [
     !!d.categoryId,
     d.photos.length > 0,
-    d.title.trim().length >= 3 && d.title.length <= TITLE_MAX && d.description.length <= DESC_MAX && (d.negotiable || Number(d.price) > 0),
     !!d.cityId,
+    d.title.trim().length >= 3 && d.title.length <= TITLE_MAX && d.description.length <= DESC_MAX && (d.negotiable || Number(d.price) > 0),
     true,
   ][step]
 
@@ -58,10 +69,12 @@ export default function Create() {
   }, [step, d])
 
   const back = async () => {
+    if (done) return navigate('/', { replace: true })
     if (step > 0) return setStep((s) => s - 1)
     const dirty = d.photos.length || d.title || d.description
-    if (!dirty || (await confirmDialog('Удалить черновик объявления?'))) navigate(-1)
+    if (!dirty || (await confirmDialog('Удалить черновик объявления?'))) goBack({ ignoreOverride: true })
   }
+  useBackHandler(back)
 
   if (done) {
     return (
@@ -90,15 +103,14 @@ export default function Create() {
     title: d.title || 'Без названия',
     description: d.description,
     price: d.negotiable || !d.price ? null : Number(d.price),
-    currency: 'USD',
+    currency: currencyOf(d.cityId ?? 'bali'),
     categoryId: d.categoryId ?? 'home',
     cityId: d.cityId ?? 'bali',
     district: d.district || cityById(d.cityId ?? '')?.title,
-    distanceKm: 0,
     photos: d.photos,
     attributes: [],
     sellerId: 'u1',
-    createdAt: new Date().toISOString(),
+    createdAt: startedAt,
     views: 0,
     favorites: 0,
     status: 'moderation',
@@ -106,15 +118,18 @@ export default function Create() {
 
   return (
     <div className="page page--grouped">
-      <TopBar title="Новое объявление" />
+      <AppBar
+        title="Новое объявление"
+        sub={`Шаг ${step + 1} из ${STEPS.length} · ${STEPS[step]}`}
+        back={back}
+      />
       <div className="steps" aria-label={`Шаг ${step + 1} из ${STEPS.length}`}>
         {STEPS.map((s, i) => <span key={s} data-on={i <= step} />)}
       </div>
 
       <div className="create__title">
-        <div className="t-foot hint">Шаг {step + 1} из {STEPS.length}</div>
         <h1 className="t-title1">
-          {['Что продаёте?', 'Добавьте фото', 'Расскажите подробнее', 'Где находится?', 'Всё верно?'][step]}
+          {['Что продаёте?', 'Добавьте фото', 'Где находится?', 'Расскажите подробнее', 'Всё верно?'][step]}
         </h1>
       </div>
 
@@ -183,7 +198,8 @@ export default function Create() {
         </>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
+        /* описание и цена */
         <>
           <div className="section">
             <div className="section__header">Название</div>
@@ -221,15 +237,8 @@ export default function Create() {
             <div className="section__header">Цена</div>
             <div className="section__body">
               <label className="cell" style={{ opacity: d.negotiable ? 0.4 : 1 }}>
-                <span className="cell__title" style={{ fontWeight: 600 }}>$</span>
-                <input
-                  className="field num"
-                  inputMode="numeric"
-                  placeholder="0"
-                  disabled={d.negotiable}
-                  value={d.price}
-                  onChange={(e) => set({ price: e.target.value.replace(/\D/g, '').slice(0, 9) })}
-                />
+                <MoneyInput label="Цена" placeholder="0" disabled={d.negotiable} value={d.price} onChange={(v) => set({ price: v })} />
+                <span className="cell__title hint" style={{ fontWeight: 700 }}>{cur.symbol}</span>
               </label>
               <div className="cell">
                 <div className="cell__body cell__title">Договорная</div>
@@ -252,13 +261,16 @@ export default function Create() {
         </>
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <>
           <div className="section">
             <div className="section__header">Город</div>
             <div className="section__body">
               {cities.map((c) => (
-                <button key={c.id} type="button" className="cell" onClick={() => set({ cityId: c.id, district: '' })}>
+                <button key={c.id} type="button" className="cell" onClick={() =>
+                    // another country = another currency: an entered price would mean something else
+                    set({ cityId: c.id, district: '', price: c.currency === currencyOf(d.cityId ?? '') ? d.price : '' })
+                  }>
                   <div className="cell__body">
                     <div className="cell__title">{c.title}</div>
                     <div className="cell__subtitle">{c.country}</div>
@@ -303,9 +315,9 @@ export default function Create() {
                 [
                   ['Категория', categoryById(d.categoryId ?? '')?.title, 0],
                   ['Фото', `${d.photos.length} шт.`, 1],
-                  ['Название', d.title, 2],
-                  ['Цена', d.negotiable ? 'Договорная' : `$${d.price}`, 2],
-                  ['Место', [cityById(d.cityId ?? '')?.title, d.district].filter(Boolean).join(', '), 3],
+                  ['Место', [cityById(d.cityId ?? '')?.title, d.district].filter(Boolean).join(', '), 2],
+                  ['Название', d.title, 3],
+                  ['Цена', d.negotiable || !d.price ? 'Договорная' : formatMoney(Number(d.price), currencyOf(d.cityId ?? '')), 3],
                 ] as const
               ).map(([label, value, target]) => (
                 <button key={label} type="button" className="cell" onClick={() => setStep(target)}>
@@ -316,7 +328,11 @@ export default function Create() {
               ))}
             </div>
             <div className="section__footer">
-              Публикуя объявление, вы соглашаетесь с правилами Classify. Объявление появится после проверки модератором.
+              Публикуя объявление, вы соглашаетесь с{' '}
+              <button type="button" className="link" onClick={() => setRulesOpen(true)}>
+                правилами Classify
+              </button>
+              . Объявление появится после проверки модератором.
             </div>
           </div>
         </>
@@ -335,6 +351,11 @@ export default function Create() {
             </button>
           }
         />
+      )}
+      {rulesOpen && (
+        <Sheet title="Правила Classify" onClose={() => setRulesOpen(false)}>
+          <RulesContent />
+        </Sheet>
       )}
     </div>
   )

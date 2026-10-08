@@ -1,13 +1,13 @@
-import { Search as SearchIcon, SearchX, SlidersHorizontal, X } from 'lucide-react'
+import { Bell, Search as SearchIcon, SearchX, SlidersHorizontal, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { CategoryIcon } from '../components/CategoryIcon'
-import { Empty, TopBar } from '../components/Chrome'
+import { AppBar, Empty } from '../components/Chrome'
 import { CardSkeletons, ListingCard } from '../components/ListingCard'
-import { FilterSheet } from '../components/Sheets'
+import { AlertSheet, FilterSheet } from '../components/Sheets'
 import { categories, cityById } from '../mocks/reference'
-import { useApp } from '../store/app'
+import { useApp } from '../store/useApp'
 import type { CategoryId, ListingFilters } from '../types'
 import { plural } from '../utils/format'
 import { useAsync } from '../utils/useAsync'
@@ -18,11 +18,14 @@ export default function Search() {
   const [query, setQuery] = useState(params.get('q') ?? '')
   const [filters, setFilters] = useState<ListingFilters>({ sort: 'new' })
   const [sheet, setSheet] = useState(false)
+  const [alerting, setAlerting] = useState(false)
   const categoryId = (params.get('cat') as CategoryId | null) ?? undefined
+  const city = cityById(location.cityId)
 
   const effective = useMemo<ListingFilters>(
-    () => ({ ...filters, query, categoryId, cityId: location.cityId }),
-    [filters, query, categoryId, location.cityId],
+    // search is limited to the chosen district (or the whole city when none is chosen)
+    () => ({ ...filters, query, categoryId, cityId: location.cityId, district: location.district ?? undefined }),
+    [filters, query, categoryId, location.cityId, location.district],
   )
   const { data, loading } = useAsync(() => api.getListings(effective), [JSON.stringify(effective)])
   const items = data ?? []
@@ -40,7 +43,7 @@ export default function Search() {
 
   return (
     <div className="page">
-      <TopBar plain />
+      <AppBar back flush title="Поиск" sub={[city?.title, location.district ?? 'весь город'].join(' · ')} />
       <div className="search__bar">
         <label className="searchfield">
           <SearchIcon size={17} strokeWidth={2.4} />
@@ -48,7 +51,7 @@ export default function Search() {
             autoFocus
             type="search"
             enterKeyHint="search"
-            placeholder={`Поиск — ${cityById(location.cityId)?.title}`}
+            placeholder="Что ищете?"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -92,6 +95,23 @@ export default function Search() {
         )}
       </div>
 
+      {/* with no results the same action sits in the empty state instead */}
+      {(query.trim().length >= 2 || categoryId) && !loading && items.length > 0 && (
+        <div className="section">
+          <div className="section__body">
+            <button type="button" className="cell cell--icon alert-cta" onClick={() => setAlerting(true)}>
+              <span className="tile-icon"><Bell size={15} strokeWidth={2.4} /></span>
+              <div className="cell__body">
+                <div className="cell__title">Уведомить о новых</div>
+                <div className="cell__subtitle">
+                  {[query.trim() ? `«${query.trim()}»` : categories.find((c) => c.id === categoryId)?.title, city?.title].filter(Boolean).join(' · ')} — пришлём в бота
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <CardSkeletons />
       ) : items.length ? (
@@ -100,15 +120,28 @@ export default function Search() {
         <Empty
           icon={<SearchX size={30} />}
           title="Ничего не нашли"
-          text={query ? `По запросу «${query}» в этом городе пока нет объявлений. Попробуйте другое слово или уберите фильтры.` : 'Попробуйте убрать часть фильтров или выбрать другой район.'}
+          text={`${query ? `По запросу «${query}»` : 'По этим фильтрам'} ${location.district ? `в районе ${location.district}` : 'в этом городе'} пока нет объявлений. Попробуйте другое слово, уберите фильтры или выберите другой район на главной.`}
           action={
-            <button type="button" className="btn btn--tinted" onClick={() => { setQuery(''); setFilters({ sort: 'new' }); setCategory(undefined) }}>
-              Показать все
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(query.trim().length >= 2 || categoryId) && (
+                <button type="button" className="btn btn--primary" onClick={() => setAlerting(true)}>
+                  <Bell size={16} strokeWidth={2.4} /> Уведомить меня
+                </button>
+              )}
+              <button type="button" className="btn btn--tinted" onClick={() => { setQuery(''); setFilters({ sort: 'new' }); setCategory(undefined) }}>
+                Показать все
+              </button>
+            </div>
           }
         />
       )}
 
+      {alerting && (
+        <AlertSheet
+          initial={{ query, categoryId, cityId: location.cityId, district: location.district ?? undefined, priceTo: filters.priceTo, condition: filters.condition }}
+          onClose={() => setAlerting(false)}
+        />
+      )}
       {sheet && <FilterSheet value={filters} onApply={setFilters} onClose={() => setSheet(false)} />}
     </div>
   )

@@ -1,25 +1,33 @@
-import { useEffect, useState, type DependencyList } from 'react'
+import { useEffect, useRef, useState, type DependencyList } from 'react'
 
-/** Minimal data hook for the mock API: { data, loading, error }. */
+/**
+ * Minimal data hook for the mock API: { data, loading, error }.
+ * Refetches when `deps` change (compared by value), always calling the latest `fn`.
+ * `loading` is derived — true until a result for the current deps arrives; the previous
+ * data stays visible meanwhile.
+ */
 export function useAsync<T>(fn: () => Promise<T>, deps: DependencyList) {
-  const [state, setState] = useState<{ data: T | null; loading: boolean; error: string | null }>({
+  const key = JSON.stringify(deps)
+  const [state, setState] = useState<{ key: string | null; data: T | null; error: string | null }>({
+    key: null,
     data: null,
-    loading: true,
     error: null,
+  })
+  const fnRef = useRef(fn)
+  useEffect(() => {
+    fnRef.current = fn
   })
 
   useEffect(() => {
     let alive = true
-    setState((s) => ({ ...s, loading: true, error: null }))
-    fn().then(
-      (data) => alive && setState({ data, loading: false, error: null }),
-      (e: unknown) => alive && setState({ data: null, loading: false, error: e instanceof Error ? e.message : 'Ошибка' }),
+    fnRef.current().then(
+      (data) => alive && setState({ key, data, error: null }),
+      (e: unknown) => alive && setState({ key, data: null, error: e instanceof Error ? e.message : 'Ошибка' }),
     )
     return () => {
       alive = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
+  }, [key])
 
-  return state
+  return { data: state.data, loading: state.key !== key, error: state.key === key ? state.error : null }
 }

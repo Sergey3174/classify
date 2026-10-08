@@ -1,25 +1,25 @@
 import { useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import { TAB_ROOTS, useGoBack } from '../navigation'
 import { isTelegram, tg } from './telegram'
 
-/** Shows Telegram's native Back button on every screen except the tab roots. */
-export function useTelegramBackButton(rootPaths: string[]) {
-  const location = useLocation()
-  const navigate = useNavigate()
+/** Shows Telegram's native Back button on every screen except the tab roots; it does the same as «‹». */
+export function useTelegramBackButton() {
+  const { pathname } = useLocation()
+  const goBack = useGoBack()
 
   useEffect(() => {
     const app = tg
     if (!app) return
-    const isRoot = rootPaths.includes(location.pathname)
-    const goBack = () => navigate(-1)
-    if (isRoot) {
+    if (TAB_ROOTS.includes(pathname)) {
       app.BackButton.hide()
       return
     }
+    const onClick = () => goBack()
     app.BackButton.show()
-    app.BackButton.onClick(goBack)
-    return () => app.BackButton.offClick(goBack)
-  }, [location.pathname, navigate, rootPaths])
+    app.BackButton.onClick(onClick)
+    return () => app.BackButton.offClick(onClick)
+  }, [pathname, goBack])
 }
 
 /**
@@ -28,7 +28,9 @@ export function useTelegramBackButton(rootPaths: string[]) {
  */
 export function useMainButton(text: string | null, onClick: () => void, opts: { disabled?: boolean; loading?: boolean } = {}) {
   const handler = useRef(onClick)
-  handler.current = onClick
+  useEffect(() => {
+    handler.current = onClick
+  })
 
   useEffect(() => {
     if (!tg || !isTelegram) return

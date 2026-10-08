@@ -6,12 +6,13 @@ const avatar = (seed: string) => `https://i.pravatar.cc/160?u=${seed}`
 export const ME_ID = 'u1'
 
 export const users: User[] = [
-  { id: 'u1', name: 'Павел', username: 'pavel_dev', avatar: avatar('pavel'), city: 'bali', rating: 4.9, reviewsCount: 23, registeredAt: '2025-03-12', verified: true, responseTime: 'обычно отвечает за 10 минут' },
-  { id: 'u2', name: 'Анна Смирнова', username: 'anna_sm', avatar: avatar('anna'), city: 'bali', rating: 4.8, reviewsCount: 41, registeredAt: '2024-11-02', verified: true, responseTime: 'обычно отвечает за час' },
-  { id: 'u3', name: 'Игорь', username: 'igor_moto', avatar: avatar('igor'), city: 'phuket', rating: 4.6, reviewsCount: 12, registeredAt: '2025-06-20', verified: false, responseTime: 'обычно отвечает в течение дня' },
-  { id: 'u4', name: 'Studio Rent', username: 'studio_rent', avatar: avatar('studio'), city: 'bangkok', rating: 5, reviewsCount: 87, registeredAt: '2023-08-15', verified: true, responseTime: 'обычно отвечает за 5 минут' },
-  { id: 'u5', name: 'Мария К.', username: 'maria_k', avatar: avatar('maria'), city: 'moscow', rating: 4.3, reviewsCount: 7, registeredAt: '2026-01-09', verified: false, responseTime: 'обычно отвечает за 2 часа' },
-  { id: 'u6', name: 'Дмитрий', username: 'dima_tech', avatar: avatar('dima'), city: 'minsk', rating: 4.7, reviewsCount: 19, registeredAt: '2025-02-28', verified: true, responseTime: 'обычно отвечает за 30 минут' },
+  // the signed-in user starts without KYC, so the flow in «Мой профиль → Проверка личности» can be tried
+  { id: 'u1', name: 'Павел', username: 'pavel_dev', avatar: avatar('pavel'), city: 'bali', rating: 4.9, reviewsCount: 23, registeredAt: '2025-03-12', kyc: 'none', responseTime: 'обычно отвечает за 10 минут' },
+  { id: 'u2', name: 'Анна Смирнова', username: 'anna_sm', avatar: avatar('anna'), city: 'bali', rating: 4.8, reviewsCount: 41, registeredAt: '2024-11-02', kyc: 'verified', responseTime: 'обычно отвечает за час' },
+  { id: 'u3', name: 'Игорь', username: 'igor_moto', avatar: avatar('igor'), city: 'phuket', rating: 4.6, reviewsCount: 12, registeredAt: '2025-06-20', kyc: 'none', responseTime: 'обычно отвечает в течение дня' },
+  { id: 'u4', name: 'Studio Rent', username: 'studio_rent', avatar: avatar('studio'), city: 'bangkok', rating: 5, reviewsCount: 87, registeredAt: '2023-08-15', kyc: 'verified', responseTime: 'обычно отвечает за 5 минут' },
+  { id: 'u5', name: 'Мария К.', username: 'maria_k', avatar: avatar('maria'), city: 'moscow', rating: 4.3, reviewsCount: 7, registeredAt: '2026-01-09', kyc: 'none', responseTime: 'обычно отвечает за 2 часа' },
+  { id: 'u6', name: 'Дмитрий', username: 'dima_tech', avatar: avatar('dima'), city: 'minsk', rating: 4.7, reviewsCount: 19, registeredAt: '2025-02-28', kyc: 'verified', responseTime: 'обычно отвечает за 30 минут' },
 ]
 
 export const userById = (id: string) => users.find((u) => u.id === id)

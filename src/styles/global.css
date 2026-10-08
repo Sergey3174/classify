@@ -1,7 +1,6 @@
 /* Classify — Telegram-native design system in the Fragment dark palette
-   (colours sampled from fragment.com). The app keeps its own dark identity
-   regardless of the user's Telegram theme; `data-theme="light"` restores
-   the Telegram iOS light palette that follows --tg-theme-* variables. */
+   (colours sampled from fragment.com). Dark only: the app keeps this palette
+   regardless of the user's Telegram theme (there is no light theme). */
 
 :root {
   --bg: #1a2026;
@@ -10,8 +9,6 @@
   --elevated: #293440;
   --text: #ffffff;
   --hint: #8c9aa9;
-  --subtitle: #8c9aa9;
-  --section-header: #a5b8cc;
   --link: #4db2ff;
   --accent: #248bda;
   --on-accent: #ffffff;
@@ -27,35 +24,17 @@
   --on-warning: #ffc27a;
   --on-success: #7fe0a0;
   --glass: rgba(17, 20, 23, 0.55);
-  --knob: #ffffff;
+  --like: #ff3b5c; /* filled heart: favourites */
+  --rating: #ffb800; /* rating star */
+
+  /* solid icon tiles (settings rows, category tiles in the create wizard) */
+  --tile-blue: #007aff;
+  --tile-green: #34c759;
+  --tile-orange: #ff9500;
+  --tile-indigo: #5856d6;
+  --tile-gray: #8e8e93;
 
   color-scheme: dark;
-}
-
-:root[data-theme='light'] {
-  --bg: var(--tg-theme-bg-color, #ffffff);
-  --bg-grouped: var(--tg-theme-secondary-bg-color, #f2f2f7);
-  --section: var(--tg-theme-section-bg-color, #ffffff);
-  --elevated: var(--tg-theme-section-bg-color, #ffffff);
-  --text: var(--tg-theme-text-color, #000000);
-  --hint: var(--tg-theme-hint-color, #8e8e93);
-  --subtitle: var(--tg-theme-subtitle-text-color, #8e8e93);
-  --section-header: var(--tg-theme-section-header-text-color, #6d6d72);
-  --link: var(--tg-theme-link-color, #007aff);
-  --accent: var(--tg-theme-button-color, #007aff);
-  --on-accent: var(--tg-theme-button-text-color, #ffffff);
-  --accent-text: var(--tg-theme-accent-text-color, #007aff);
-  --destructive: var(--tg-theme-destructive-text-color, #ff3b30);
-  --separator: var(--tg-theme-section-separator-color, rgba(60, 60, 67, 0.16));
-  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
-  --fill: color-mix(in srgb, var(--hint) 14%, transparent);
-  --fill-strong: color-mix(in srgb, var(--hint) 22%, transparent);
-  --success: #34c759;
-  --warning: #ff9500;
-  --on-warning: #c76a00;
-  --on-success: #1f8a3b;
-  --glass: rgba(0, 0, 0, 0.45);
-  color-scheme: light;
 }
 
 :root {
@@ -66,17 +45,11 @@
   --r-card: 12px;
   --r-control: 10px;
   --gutter: 12px;
-  --thead: #293440;
   --chip: #242e38;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.35);
   --seg-on: #3a4756;
-}
-
-:root[data-theme='light'] {
-  --seg-on: var(--section);
-  --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.12);
 }
 
 *,
@@ -158,7 +131,6 @@ img {
 }
 
 /* ---------- type scale (iOS) ---------- */
-.t-large { font-size: 26px; line-height: 32px; font-weight: 700; }
 .t-title1 { font-size: 22px; line-height: 30px; font-weight: 700; }
 .t-title2 { font-size: 18px; line-height: 28px; font-weight: 700; }
 .t-title3 { font-size: 16px; line-height: 22px; font-weight: 700; }
@@ -182,48 +154,6 @@ img {
 
 .page--flush {
   padding-bottom: calc(24px + var(--safe-bottom));
-}
-
-/* Browser-only stand-in for Telegram's native header with Back button */
-.devbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  padding: 0 6px;
-  background: color-mix(in srgb, var(--bg-grouped) 82%, transparent);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 0.5px solid var(--separator);
-}
-
-.devbar--plain {
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-}
-
-.devbar__back {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 44px;
-  padding-right: 8px;
-  color: var(--link);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.devbar__title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: 700;
-  font-size: 14px;
-  max-width: calc(100% - 190px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ---------- grouped sections & cells ---------- */
@@ -318,6 +248,12 @@ a.cell:active {
   white-space: nowrap;
 }
 
+/* secondary value: «Не пройдена», «ждём», «пауза» */
+.cell__value.hint {
+  color: var(--hint);
+  font-weight: 400;
+}
+
 .cell__chev {
   color: var(--fill-strong);
   flex: none;
@@ -368,6 +304,18 @@ a.cell:active {
 .btn--tinted {
   background: var(--accent-soft);
   color: var(--accent-text);
+}
+
+.btn--quiet {
+  background: var(--fill);
+  color: var(--text);
+}
+
+/* inline text link inside running text (e.g. «правилами Classify») */
+.link {
+  display: inline;
+  color: var(--link);
+  font: inherit;
 }
 
 .btn--plain {
@@ -464,6 +412,13 @@ a.cell:active {
   background: transparent;
   color: var(--text);
   font-size: 14px;
+}
+
+/* the field has its own clear button — hide the browser's one */
+.searchfield input::-webkit-search-cancel-button,
+.searchfield input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .searchfield input::placeholder {
@@ -599,8 +554,7 @@ a.cell:active {
 
 .pill--accent { background: var(--accent-soft); color: var(--accent-text); }
 .pill--warning { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--on-warning); }
-.pill--success { background: color-mix(in srgb, var(--success) 16%, transparent); color: var(--on-success); }
-.pill--muted { background: var(--fill); color: var(--hint); }
+.pill--new { background: var(--accent); color: var(--on-accent); }
 .pill--glass {
   background: var(--glass);
   color: #fff;
@@ -625,9 +579,17 @@ a.cell:active {
 }
 
 .card {
-  display: block;
+  /* column + meta pushed to the bottom: cards in one row (grid or .hscroll) end on the same line */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   min-width: 0;
   transition: transform 0.18s var(--ease-out);
+}
+
+.card > .meta {
+  margin-top: auto;
+  padding-top: 3px;
 }
 
 .card:active {
@@ -648,10 +610,14 @@ a.cell:active {
   object-fit: cover;
 }
 
-.card__badge {
+.card__badges {
   position: absolute;
   left: 6px;
   top: 6px;
+  right: 40px; /* keep clear of the heart */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .card__count {
@@ -676,7 +642,7 @@ a.cell:active {
 }
 
 .fav[aria-pressed='true'] {
-  color: #ff3b5c;
+  color: var(--like);
   background: rgba(255, 255, 255, 0.92);
   animation: fav-pop 0.35s var(--ease-out);
 }
@@ -845,6 +811,7 @@ a.cell:active {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: max-content; /* with left: 50% the box would otherwise shrink to half the screen */
   max-width: calc(100% - 32px);
   padding: 10px 14px;
   border-radius: 10px;
@@ -965,6 +932,7 @@ a.cell:active {
   animation: fade-in 0.25s ease-out;
 }
 
+.chip--quiet:not([aria-pressed='true']),
 .place-row__districts .chip:not([aria-pressed='true']) {
   background: var(--elevated);
 }

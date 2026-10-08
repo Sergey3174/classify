@@ -1,12 +1,15 @@
-import { Check, ChevronRight, MapPin, Search, X } from 'lucide-react'
+import { Check, ChevronRight, LocateFixed, MapPin, Search, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { listings as seedListings } from '../mocks/listings'
-import { cities } from '../mocks/reference'
+import { api, MAX_ACTIVE_ALERTS } from '../api'
+import { useAsync } from '../utils/useAsync'
+import { categories, cities, currencies, currencyOf } from '../mocks/reference'
 import { plural } from '../utils/format'
-import { useApp } from '../store/app'
+import { useApp } from '../store/useApp'
 import { haptic } from '../telegram/telegram'
-import type { Condition, ListingFilters, SortOrder } from '../types'
-import { Segmented, Switch } from './Chrome'
+import type { Alert, AlertDraft, Condition, ListingFilters, SortOrder } from '../types'
+import { CategoryIcon } from './CategoryIcon'
+import { MoneyInput, Segmented, Switch } from './Chrome'
 
 export function Sheet({
   title,
@@ -49,7 +52,7 @@ export function Sheet({
 
 /** Country → city → district picker. Locality is the product's main filter. */
 export function LocationSheet({ onClose }: { onClose(): void }) {
-  const { location, setLocation } = useApp()
+  const { location, setLocation, showToast } = useApp()
   const [cityId, setCityId] = useState(location.cityId)
   const [district, setDistrict] = useState<string | null>(location.district)
   const [query, setQuery] = useState('')
@@ -66,7 +69,23 @@ export function LocationSheet({ onClose }: { onClose(): void }) {
 
   const apply = () => {
     haptic.success()
-    setLocation({ cityId, district })
+    setLocation({ cityId, district, source: 'manual' })
+    onClose()
+  }
+
+  const [detecting, setDetecting] = useState(false)
+  const detect = async () => {
+    setDetecting(true)
+    const res = await api.detectLocation()
+    setDetecting(false)
+    if (!res) {
+      haptic.error()
+      showToast('Не получилось определить — выберите город вручную')
+      return
+    }
+    haptic.success()
+    setLocation({ cityId: res.cityId, district: null, source: 'auto' })
+    showToast(`Определили: ${cities.find((c) => c.id === res.cityId)?.title}`)
     onClose()
   }
 
@@ -85,6 +104,18 @@ export function LocationSheet({ onClose }: { onClose(): void }) {
           <Search size={16} strokeWidth={2.4} />
           <input placeholder="Страна, город или район" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
+      </div>
+
+      <div className="section">
+        <div className="section__body">
+          <button type="button" className="cell cell--icon alert-cta" onClick={detect} disabled={detecting}>
+            <span className="tile-icon"><LocateFixed size={15} strokeWidth={2.4} /></span>
+            <div className="cell__body">
+              <div className="cell__title">{detecting ? 'Определяем…' : 'Определить автоматически'}</div>
+              <div className="cell__subtitle">По сети — только город, район выберите сами</div>
+            </div>
+          </button>
+        </div>
       </div>
 
       {countries.map((country) => (
@@ -166,9 +197,10 @@ export function FilterSheet({
   onApply(f: ListingFilters): void
   onClose(): void
 }) {
+  const { location } = useApp()
+  const cur = currencies[currencyOf(location.cityId)]
   const [f, setF] = useState<ListingFilters>(value)
   const set = (patch: Partial<ListingFilters>) => setF((prev) => ({ ...prev, ...patch }))
-  const num = (s: string) => (s.trim() === '' ? undefined : Math.max(0, Number(s.replace(/\D/g, ''))))
 
   return (
     <Sheet
@@ -204,31 +236,19 @@ export function FilterSheet({
       </div>
 
       <div className="section">
-        <div className="section__header">Цена, $</div>
+        <div className="section__header">Цена, {cur.symbol}</div>
         <div className="section__body" style={{ display: 'flex' }}>
           <label className="cell" style={{ flex: 1 }}>
             <span className="hint">от</span>
-            <input
-              className="field num"
-              inputMode="numeric"
-              placeholder="0"
-              value={f.priceFrom ?? ''}
-              onChange={(e) => set({ priceFrom: num(e.target.value) })}
-            />
+            <MoneyInput label="Цена от" placeholder="0" value={String(f.priceFrom ?? '')} onChange={(v) => set({ priceFrom: v ? Number(v) : undefined })} />
           </label>
           <div style={{ width: 0.5, background: 'var(--separator)' }} />
           <label className="cell" style={{ flex: 1 }}>
             <span className="hint">до</span>
-            <input
-              className="field num"
-              inputMode="numeric"
-              placeholder="любая"
-              value={f.priceTo ?? ''}
-              onChange={(e) => set({ priceTo: num(e.target.value) })}
-            />
+            <MoneyInput label="Цена до" placeholder="любая" value={String(f.priceTo ?? '')} onChange={(v) => set({ priceTo: v ? Number(v) : undefined })} />
           </label>
         </div>
-        <div className="section__footer">Цены в рупиях и рублях пересчитываем в доллары по курсу дня.</div>
+        <div className="section__footer">Цены в {cur.name} — валюте страны, где опубликовано объявление.</div>
       </div>
 
       <div className="section">
@@ -255,6 +275,140 @@ export function FilterSheet({
             <Switch label="Только с фото" checked={!!f.withPhoto} onChange={(v) => set({ withPhoto: v || undefined })} />
           </div>
         </div>
+      </div>
+    </Sheet>
+  )
+}
+
+/**
+ * «Ищу» — create a subscription. Nothing is published: when a matching listing appears,
+ * the bot messages the user. Opened from «Уведомления» (+) and from search («Уведомить меня»).
+ */
+export function AlertSheet({ initial, onClose, onCreated }: { initial?: Partial<AlertDraft>; onClose(): void; onCreated?(a: Alert): void }) {
+  const { location, showToast } = useApp()
+  const [d, setD] = useState<AlertDraft>({
+    query: initial?.query ?? '',
+    categoryId: initial?.categoryId,
+    cityId: initial?.cityId ?? location.cityId,
+    district: initial?.district ?? location.district ?? undefined,
+    priceTo: initial?.priceTo,
+    condition: initial?.condition,
+  })
+  const [busy, setBusy] = useState(false)
+  const existing = useAsync(() => api.getAlerts(), [])
+  const atLimit = (existing.data ?? []).filter((a) => a.active).length >= MAX_ACTIVE_ALERTS
+  const set = (patch: Partial<AlertDraft>) => setD((prev) => ({ ...prev, ...patch }))
+  const city = cities.find((c) => c.id === d.cityId)!
+  const cur = currencies[city.currency]
+  const valid = d.query.trim().length >= 2 || !!d.categoryId
+
+  const submit = async () => {
+    setBusy(true)
+    try {
+      const a = await api.createAlert(d)
+      haptic.success()
+      showToast('Уведомление создано — пришлём в бота')
+      onCreated?.(a)
+      onClose()
+    } catch (e) {
+      haptic.error()
+      showToast(e instanceof Error ? e.message : 'Не получилось')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Sheet
+      title="Уведомить меня"
+      onClose={onClose}
+      footer={
+        <button type="button" className="btn btn--primary btn--block" disabled={!valid || busy || atLimit} onClick={submit}>
+          {busy ? 'Сохраняем…' : atLimit ? `Уже ${MAX_ACTIVE_ALERTS} активных` : 'Уведомить меня'}
+        </button>
+      }
+    >
+      {atLimit && (
+        <div className="section">
+          <div className="section__body section__body--pad t-sub">
+            У вас уже {MAX_ACTIVE_ALERTS} активных уведомлений — это максимум. Удалите или поставьте на паузу одно из них в разделе «Уведомления».
+          </div>
+        </div>
+      )}
+
+      <div className="section">
+        <div className="section__header">Что ищете</div>
+        <div className="section__body section__body--pad">
+          <input
+            className="field"
+            autoFocus
+            placeholder="Например, MacBook Air M2"
+            maxLength={60}
+            value={d.query}
+            onChange={(e) => set({ query: e.target.value })}
+          />
+        </div>
+        <div className="section__footer">Объявление «ищу» никто не увидит. Как только опубликуют подходящее — пришлём сообщение в бота.</div>
+      </div>
+
+      <div className="section" style={{ marginBottom: 8 }}>
+        <div className="section__header">Категория</div>
+      </div>
+      <div className="chips" style={{ marginBottom: 16 }}>
+        <button type="button" className="chip" aria-pressed={!d.categoryId} onClick={() => set({ categoryId: undefined })}>Любая</button>
+        {categories.map((c) => (
+          <button key={c.id} type="button" className="chip" aria-pressed={d.categoryId === c.id} onClick={() => { haptic.select(); set({ categoryId: c.id }) }}>
+            {d.categoryId !== c.id && <CategoryIcon id={c.id} size={16} />}
+            {c.title}
+          </button>
+        ))}
+      </div>
+
+      <div className="section" style={{ marginBottom: 8 }}>
+        <div className="section__header">Где</div>
+      </div>
+      <div className="chips" style={{ marginBottom: 8 }}>
+        {cities.map((c) => (
+          <button key={c.id} type="button" className="chip" aria-pressed={d.cityId === c.id} onClick={() => {
+              haptic.select()
+              // the price limit is in the city's currency — drop it when the currency changes
+              set({ cityId: c.id, district: undefined, priceTo: c.currency === city.currency ? d.priceTo : undefined })
+            }}>
+            {c.title}
+          </button>
+        ))}
+      </div>
+      <div className="chips" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
+        <button type="button" className="chip chip--quiet" aria-pressed={!d.district} onClick={() => set({ district: undefined })}>Весь город</button>
+        {city.districts.map((dist) => (
+          <button key={dist} type="button" className="chip chip--quiet" aria-pressed={d.district === dist} onClick={() => set({ district: dist })}>
+            {dist}
+          </button>
+        ))}
+      </div>
+
+      <div className="section">
+        <div className="section__header">Цена до, {cur.symbol}</div>
+        <div className="section__body">
+          <label className="cell">
+            <span className="hint">до</span>
+            <MoneyInput label="Цена до" placeholder="любая" value={String(d.priceTo ?? '')} onChange={(v) => set({ priceTo: v ? Number(v) : undefined })} />
+          </label>
+        </div>
+        <div className="section__footer">В {cur.name} — валюте страны.</div>
+      </div>
+
+      <div className="section">
+        <div className="section__header">Состояние</div>
+        <Segmented<'any' | Condition>
+          value={d.condition ?? 'any'}
+          options={[
+            { value: 'any', label: 'Любое' },
+            { value: 'new', label: 'Новое' },
+            { value: 'used', label: 'Б/у' },
+          ]}
+          onChange={(v) => set({ condition: v === 'any' ? undefined : v })}
+        />
       </div>
     </Sheet>
   )

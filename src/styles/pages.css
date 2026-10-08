@@ -1,5 +1,5 @@
-/* ---------- Home ---------- */
-.home__top {
+/* ---------- App bar: one header for every tab section (Главная, Подать, Избранное, Мои) ---------- */
+.appbar {
   position: sticky;
   top: 0;
   z-index: 15;
@@ -14,42 +14,52 @@
   -webkit-backdrop-filter: saturate(160%) blur(18px);
 }
 
-.home__side {
+.appbar--flush {
+  margin-bottom: 0;
+}
+
+.page--grouped .appbar {
+  background: color-mix(in srgb, var(--bg-grouped) 88%, transparent);
+}
+
+.appbar__side {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
+  color: var(--accent);
 }
 
-.place {
+.appbar__center {
   justify-self: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
   max-width: 100%;
   padding: 4px 12px;
-  border-radius: 10px;
-  transition: background-color 0.2s;
 }
 
-.place:active {
-  background: var(--fill);
-}
-
-.place__city {
+.appbar__title {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 15px;
-  line-height: 19px;
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  line-height: 20px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.place__city svg {
-  color: var(--hint);
+/* block (not inline-flex) so a long title can end with an ellipsis */
+.appbar__center > h1.appbar__title {
+  display: block;
 }
 
-.place__sub {
+.appbar__sub {
   font-size: 11px;
   line-height: 14px;
   color: var(--hint);
@@ -59,14 +69,21 @@
   max-width: 220px;
 }
 
-.home__icon {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  color: var(--accent);
+/* Home: the centre of the app bar is the location picker */
+.place {
+  border-radius: 10px;
+  transition: background-color 0.2s;
 }
 
+.place:active {
+  background: var(--fill);
+}
+
+.place .appbar__title svg {
+  color: var(--hint);
+}
+
+/* ---------- Home ---------- */
 .home__cats {
   margin-top: 2px;
   gap: 2px;
@@ -130,7 +147,7 @@
 /* ---------- Search ---------- */
 .search__bar {
   position: sticky;
-  top: 0;
+  top: 52px; /* stays under the sticky .appbar */
   z-index: 10;
   display: flex;
   align-items: center;
@@ -275,22 +292,24 @@
   align-items: center;
   gap: 4px;
   color: var(--text);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .stars svg {
-  color: #ffb800;
+  color: var(--rating);
 }
 
 .mini {
-  width: 132px;
+  display: flex;
+  width: 148px;
 }
 
 /* ---------- Create ---------- */
 .steps {
   display: flex;
   gap: 4px;
-  padding: 10px var(--gutter) 0;
+  margin-top: -6px;
+  padding: 0 var(--gutter);
 }
 
 .steps span {
@@ -306,11 +325,11 @@
 }
 
 .create__title {
-  padding: 14px calc(var(--gutter) + 4px) 14px;
+  padding: 16px calc(var(--gutter) + 4px) 14px;
 }
 
 .create__title h1 {
-  margin: 0 0 4px;
+  margin: 0;
 }
 
 .photos {
@@ -444,27 +463,50 @@
 }
 
 /* ---------- My listings ---------- */
-.my__stats {
+/* one listing = row (photo, price, title, place) + footer (stats or status · actions) */
+.my-item {
+  position: relative;
+  background: var(--section);
+}
+
+.my-item + .my-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 12px;
+  height: 0.5px;
+  background: var(--separator);
+  z-index: 1;
+}
+
+.my-item__foot {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  align-self: flex-start;
-  margin-top: 1px;
+  min-height: 28px;
+  padding: 2px 12px 12px; /* full width, from the photo's left edge: two actions + stats fit at 375px */
+}
+
+.my-item__stats {
+  display: flex;
+  gap: 10px;
   white-space: nowrap;
   font-size: 12px;
+  line-height: 16px;
   color: var(--hint);
 }
 
-.my__stats span {
+.my-item__stats span {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.my__actions {
+.my-item__actions {
   display: flex;
   gap: 6px;
-  padding: 0 12px 10px 86px;
-  background: var(--section);
 }
 
 /* ---------- bottom tab bar ---------- */
@@ -475,8 +517,8 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  padding: 6px 4px calc(6px + var(--safe-bottom));
+  grid-template-columns: repeat(5, 1fr);
+  padding: 6px 2px calc(6px + var(--safe-bottom));
   background: color-mix(in srgb, var(--section) 92%, transparent);
   backdrop-filter: saturate(160%) blur(18px);
   -webkit-backdrop-filter: saturate(160%) blur(18px);
@@ -487,42 +529,52 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 3px;
-  height: 48px;
+  justify-content: center;
+  gap: 4px;
+  height: 52px;
   font-size: 11px;
-  line-height: 13px;
+  line-height: 14px;
   font-weight: 500;
   color: var(--hint);
   transition: color 0.2s;
+}
+
+.tabbar__pill {
+  position: relative;
+  width: 44px;
+  height: 28px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  transition: background-color 0.2s, transform 0.18s var(--ease-out);
+}
+
+.tabbar__item:active .tabbar__pill {
+  transform: scale(0.92);
 }
 
 .tabbar__item.active {
   color: var(--accent-text);
 }
 
-.tabbar__item svg {
-  transition: transform 0.18s var(--ease-out);
+.tabbar__item.active .tabbar__pill {
+  background: var(--accent-soft);
 }
 
-.tabbar__item:active svg {
-  transform: scale(0.9);
-}
-
-.tabbar__icon {
-  position: relative;
-  display: grid;
+.tabbar__item--primary .tabbar__pill {
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .tabbar__badge {
   position: absolute;
-  top: -5px;
-  right: -9px;
+  top: -4px;
+  right: 2px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
   border-radius: 999px;
-  background: #ef5b5b;
+  background: var(--destructive);
   color: #fff;
   font-size: 10px;
   font-weight: 700;
@@ -531,16 +583,106 @@
   box-shadow: 0 0 0 2px var(--section);
 }
 
-.tabbar__plus {
-  width: 30px;
-  height: 26px;
-  border-radius: 9px;
-  display: grid;
-  place-items: center;
-  background: var(--accent);
-  color: var(--on-accent);
+/* ---------- Alerts («Уведомления») ---------- */
+.cell[data-paused='true'] .cell__body,
+.cell[data-paused='true'] .tile-icon {
+  opacity: 0.55;
 }
 
-.tabbar__item--create {
-  color: var(--text);
+.alert-cta .tile-icon {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.alert-cta .cell__title {
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+/* five tabs: on phones narrower than 375px «Уведомления» would not fit at 11px */
+@media (max-width: 370px) {
+  .tabbar__item {
+    font-size: 10px;
+  }
+}
+
+/* ---------- KYC ---------- */
+.kyc__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 28px 22px;
+  text-align: center;
+}
+
+.kyc__icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.kyc__icon[data-status='pending'] {
+  background: color-mix(in srgb, var(--warning) 16%, transparent);
+  color: var(--on-warning);
+}
+
+.kyc__icon[data-status='verified'] {
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  color: var(--success);
+}
+
+/* ---------- Rules ---------- */
+.rules__list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.rules__list li::marker {
+  color: var(--hint);
+}
+
+.rules__edition {
+  text-align: center;
+  padding: 0 16px 16px;
+}
+
+/* ---------- First launch: place by IP, or pick one ---------- */
+.first-loc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 32px;
+}
+
+.first-loc__icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  animation: first-loc-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes first-loc-pulse {
+  50% { transform: scale(0.92); opacity: 0.7; }
+}
+
+.first-loc__note {
+  padding: 0 calc(var(--gutter) + 4px) 14px;
 }

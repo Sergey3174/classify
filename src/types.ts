@@ -13,15 +13,21 @@ export type CategoryId =
 export interface Category {
   id: CategoryId
   title: string
-  tint: string // фон плитки категории
 }
+
+/** Each country has its own currency; a listing is priced in the currency of its city's country. */
+export type Currency = 'IDR' | 'THB' | 'AED' | 'GEL'
 
 export interface City {
   id: string
   title: string
   country: string
+  currency: Currency
   districts: string[]
 }
+
+/** KYC — identity check. Only `verified` shows the «Личность подтверждена» mark. */
+export type KycStatus = 'none' | 'pending' | 'verified'
 
 export interface User {
   id: string
@@ -32,7 +38,7 @@ export interface User {
   rating: number // 0..5
   reviewsCount: number
   registeredAt: string // ISO date
-  verified: boolean
+  kyc: KycStatus // отметка «Личность подтверждена» — только при 'verified'
   responseTime: string // "обычно отвечает за 10 минут"
 }
 
@@ -45,7 +51,7 @@ export interface Listing {
   description: string
   price: number | null // null = "Договорная"
   priceUnit?: 'month' | 'lesson' | 'hour'
-  currency: 'RUB' | 'USD' | 'IDR'
+  currency: Currency // always the currency of the city's country
   categoryId: CategoryId
   cityId: string
   district?: string
@@ -78,6 +84,7 @@ export interface ListingFilters {
   query?: string
   categoryId?: CategoryId
   cityId?: string
+  district?: string // only this district; undefined = весь город
   priceFrom?: number
   priceTo?: number
   condition?: Condition
@@ -98,4 +105,28 @@ export interface ListingDraft {
   cityId?: string
   district: string
   delivery: boolean
+}
+
+/**
+ * «Ищу» — saved search the user subscribes to. It is never published; when a matching
+ * listing appears, the bot sends the user a message.
+ */
+export interface Alert {
+  id: string
+  query: string // «MacBook M2»; may be empty when a category is chosen
+  categoryId?: CategoryId
+  cityId: string
+  district?: string // undefined = весь город
+  priceTo?: number // in the currency of the alert's city
+  condition?: Condition
+  active: boolean // false = на паузе, уведомления не приходят
+  createdAt: string // ISO; matches are listings published after this
+  seenAt: string // ISO; matches published after this are «новые»
+}
+
+export type AlertDraft = Pick<Alert, 'query' | 'categoryId' | 'cityId' | 'district' | 'priceTo' | 'condition'>
+
+export interface AlertSummary extends Alert {
+  matches: number
+  fresh: number // новые совпадения с последнего просмотра
 }

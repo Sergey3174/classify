@@ -1,4 +1,5 @@
-import type { Listing } from '../types'
+import { currencies } from '../mocks/reference'
+import type { Currency, Listing } from '../types'
 
 const nbsp = ' '
 
@@ -6,19 +7,22 @@ function group(n: number) {
   return Math.round(n).toLocaleString('ru-RU').replace(/\s/g, nbsp)
 }
 
-/** «$1 800», «14,5 млн Rp», «92 000 ₽», or «Договорная». */
+/** Price in the listing's own (country) currency: «29 млн Rp», «17 000 ฿», «11 000 AED», «600 ₾», or «Договорная». */
 export function formatPrice(l: Pick<Listing, 'price' | 'currency'>) {
   if (l.price == null) return 'Договорная'
-  const p = l.price
-  if (l.currency === 'USD') return `$${group(p)}`
-  if (l.currency === 'RUB') return `${group(p)}${nbsp}₽`
-  // IDR: millions read better than seven-digit numbers
-  if (p >= 1_000_000) {
-    const m = (p / 1_000_000).toLocaleString('ru-RU', { maximumFractionDigits: 1 })
-    return `${m}${nbsp}млн${nbsp}Rp`
+  return formatMoney(l.price, l.currency)
+}
+
+export function formatMoney(p: number, currency: Currency) {
+  if (currency === 'IDR') {
+    // rupiah: millions / thousands read better than seven-digit numbers
+    if (p >= 1_000_000) {
+      const m = (p / 1_000_000).toLocaleString('ru-RU', { maximumFractionDigits: 1 })
+      return `${m}${nbsp}млн${nbsp}Rp`
+    }
+    if (p >= 1000) return `${group(p / 1000)}${nbsp}тыс${nbsp}Rp`
   }
-  if (p >= 1000) return `${group(p / 1000)}${nbsp}тыс${nbsp}Rp`
-  return `${group(p)}${nbsp}Rp`
+  return `${group(p)}${nbsp}${currencies[currency].symbol}`
 }
 
 export function formatUnit(l: Pick<Listing, 'priceUnit' | 'price'>) {
@@ -64,4 +68,9 @@ const MONTHS_GEN = ['января', 'февраля', 'марта', 'апрел�
 export function formatSince(isoDate: string) {
   const d = new Date(isoDate)
   return `${MONTHS_GEN[d.getMonth()]} ${d.getFullYear()}`
+}
+
+/** Glue a number to a short unit after it («24 м²», «5 мин») so the unit never wraps alone. */
+export function typo(text: string) {
+  return text.replace(/(\d) (?=[^\s\d]{1,4}(?:[\s,.)]|$))/g, `$1${nbsp}`)
 }

@@ -2,13 +2,13 @@ import { ChevronDown, Search } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { CategoryIcon, categoryColor } from '../components/CategoryIcon'
-import { Empty } from '../components/Chrome'
+import { CategoryIcon } from '../components/CategoryIcon'
+import { categoryColor } from '../components/categoryStyle'
+import { AppBar, Empty } from '../components/Chrome'
 import { CardSkeletons, ListingCard } from '../components/ListingCard'
 import { LocationSheet } from '../components/Sheets'
 import { categories, cityById } from '../mocks/reference'
-import { ME_ID, userById } from '../mocks/users'
-import { useApp } from '../store/app'
+import { useApp } from '../store/useApp'
 import type { SortOrder } from '../types'
 import { plural } from '../utils/format'
 import { useAsync } from '../utils/useAsync'
@@ -19,7 +19,6 @@ export default function Home() {
   const [sort, setSort] = useState<SortOrder>('near')
   const [picking, setPicking] = useState(false)
   const city = cityById(location.cityId)!
-  const me = userById(ME_ID)!
 
   const { data, loading } = useAsync(() => api.getListings({ cityId: location.cityId, sort }), [location.cityId, sort])
   const items = data ?? []
@@ -31,21 +30,24 @@ export default function Home() {
 
   return (
     <div className="page home">
-      <header className="home__top">
-        <Link to="/me" aria-label="Профиль" className="home__side">
-          <img className="avatar" src={me.avatar} alt="" width={28} height={28} />
-        </Link>
-        <button type="button" className="place" onClick={() => setPicking(true)} aria-label={`Место: ${city.title}. Изменить`}>
-          <span className="place__city">
-            {city.title}
-            <ChevronDown size={14} strokeWidth={3} />
-          </span>
-          <span className="place__sub">{city.country} · {location.district ?? 'весь город'}</span>
-        </button>
-        <Link to="/search" className="home__side home__icon" aria-label="Поиск">
-          <Search size={20} strokeWidth={2.2} />
-        </Link>
-      </header>
+      <AppBar
+        center={
+          <button type="button" className="appbar__center place" onClick={() => setPicking(true)} aria-label={`Место: ${city.title}. Изменить`}>
+            <span className="appbar__title">
+              {city.title}
+              <ChevronDown size={14} strokeWidth={3} />
+            </span>
+            <span className="appbar__sub">
+              {location.source === 'auto' ? `${city.country} · определено автоматически` : `${city.country} · ${location.district ?? 'весь город'}`}
+            </span>
+          </button>
+        }
+        right={
+          <Link to="/search" className="appbar__side" aria-label="Поиск">
+            <Search size={22} strokeWidth={2} />
+          </Link>
+        }
+      />
 
       <div className="hscroll home__cats" role="list" aria-label="Категории">
         {categories.map((c) => (

@@ -1,34 +1,47 @@
-import { Heart, House, LayoutList, Plus } from 'lucide-react'
+import { Bell, Heart, House, LayoutList, Plus, type LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import { useApp } from '../store/app'
+import { api } from '../api'
+import { useApp } from '../store/useApp'
 import { haptic } from '../telegram/telegram'
+import { useAsync } from '../utils/useAsync'
 
-/** Bottom navigation for the section roots. Hidden on screens that use Telegram's MainButton. */
-export const TAB_ROOTS = ['/', '/favorites', '/my']
+/** Bottom navigation for the section roots (TAB_ROOTS in navigation.ts). Hidden on screens that use Telegram's MainButton. */
+
+/**
+ * Every tab has the same anatomy: a 44×28 pill with a 22px / stroke-2 icon (the same
+ * size and weight as the header icons and category tiles) and an 11px label.
+ * The active tab gets the tinted pill, «Подать» a solid accent pill.
+ */
+function Tab({ to, icon: Icon, label, badge, primary }: { to: string; icon: LucideIcon; label: string; badge?: number; primary?: boolean }) {
+  return (
+    <NavLink
+      to={to}
+      end
+      replace // switching tabs must not pile up history
+      className={`tabbar__item${primary ? ' tabbar__item--primary' : ''}`}
+      onClick={() => (primary ? haptic.tap() : haptic.select())}
+    >
+      <span className="tabbar__pill">
+        <Icon size={22} strokeWidth={2} />
+        {!!badge && <span className="tabbar__badge num">{badge}</span>}
+      </span>
+      <span>{label}</span>
+    </NavLink>
+  )
+}
 
 export function TabBar() {
   const { favorites } = useApp()
+  // refetched whenever the bar mounts again, e.g. after opening an alert (that marks matches as seen)
+  const alerts = useAsync(() => api.getAlerts(), [])
+  const fresh = (alerts.data ?? []).reduce((n, a) => n + a.fresh, 0)
   return (
     <nav className="tabbar" aria-label="Разделы">
-      <NavLink to="/" end className="tabbar__item" onClick={() => haptic.select()}>
-        <House size={22} strokeWidth={2.1} />
-        <span>Главная</span>
-      </NavLink>
-      <NavLink to="/create" className="tabbar__item tabbar__item--create" onClick={() => haptic.tap()}>
-        <span className="tabbar__plus"><Plus size={20} strokeWidth={2.6} /></span>
-        <span>Подать</span>
-      </NavLink>
-      <NavLink to="/favorites" className="tabbar__item" onClick={() => haptic.select()}>
-        <span className="tabbar__icon">
-          <Heart size={22} strokeWidth={2.1} />
-          {favorites.length > 0 && <span className="tabbar__badge num">{favorites.length}</span>}
-        </span>
-        <span>Избранное</span>
-      </NavLink>
-      <NavLink to="/my" className="tabbar__item" onClick={() => haptic.select()}>
-        <LayoutList size={22} strokeWidth={2.1} />
-        <span>Мои</span>
-      </NavLink>
+      <Tab to="/" icon={House} label="Главная" />
+      <Tab to="/favorites" icon={Heart} label="Избранное" badge={favorites.length} />
+      <Tab to="/create" icon={Plus} label="Подать" primary />
+      <Tab to="/alerts" icon={Bell} label="Уведомления" badge={fresh} />
+      <Tab to="/my" icon={LayoutList} label="Мои" />
     </nav>
   )
 }

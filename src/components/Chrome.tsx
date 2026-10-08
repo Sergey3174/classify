@@ -1,24 +1,64 @@
 import { ChevronLeft, CircleCheck } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useApp } from '../store/app'
+import { useLayoutEffect, useRef, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
+import { useGoBack } from '../navigation'
+import { ME_ID, userById } from '../mocks/users'
+import { useApp } from '../store/useApp'
 import { useMainButton } from '../telegram/hooks'
 import { isTelegram } from '../telegram/telegram'
 
 /**
- * Inside Telegram the native header + BackButton are used, so this renders nothing.
- * In a plain browser it imitates Telegram's header so screens can be reviewed in Chrome.
+ * The only header in the app: 52px, sticky, 40px side slots, centred 16/700 title with an
+ * optional 11px hint line. Tab sections show the profile avatar on the left; nested screens
+ * pass `back` and get a «‹» (only in a browser — inside Telegram the native BackButton is used).
  */
-export function TopBar({ title, plain }: { title?: string; plain?: boolean }) {
-  const navigate = useNavigate()
+export function AppBar({
+  title,
+  sub,
+  center,
+  back,
+  right,
+  flush,
+}: {
+  title?: ReactNode
+  sub?: ReactNode
+  center?: ReactNode
+  /** Nested screen: show «‹» instead of the avatar. `true` = app «Назад» (see navigation.ts), or a custom handler. */
+  back?: boolean | (() => void)
+  right?: ReactNode
+  /** No gap below the bar (content such as a photo gallery starts right under it). */
+  flush?: boolean
+}) {
+  return (
+    <header className={`appbar${flush ? ' appbar--flush' : ''}`}>
+      <div className="appbar__side">{back ? <BackLink onBack={back === true ? undefined : back} /> : <ProfileLink />}</div>
+      {center ?? (
+        <div className="appbar__center">
+          <h1 className="appbar__title">{title}</h1>
+          {sub && <span className="appbar__sub num">{sub}</span>}
+        </div>
+      )}
+      <div className="appbar__side">{right}</div>
+    </header>
+  )
+}
+
+function BackLink({ onBack }: { onBack?: () => void }) {
+  const goBack = useGoBack()
   if (isTelegram) return null
   return (
-    <div className={`devbar${plain ? ' devbar--plain' : ''}`}>
-      <button type="button" className="devbar__back" onClick={() => navigate(-1)}>
-        <ChevronLeft size={22} strokeWidth={2.4} /> Назад
-      </button>
-      {title && <div className="devbar__title">{title}</div>}
-    </div>
+    <button type="button" className="appbar__side" onClick={onBack ?? (() => goBack())} aria-label="Назад">
+      <ChevronLeft size={24} strokeWidth={2} />
+    </button>
+  )
+}
+
+function ProfileLink() {
+  const me = userById(ME_ID)!
+  return (
+    <Link to="/me" aria-label="Профиль" className="appbar__side">
+      <img className="avatar" src={me.avatar} alt="" width={28} height={28} />
+    </Link>
   )
 }
 
@@ -110,5 +150,62 @@ export function Segmented<T extends string>({
         </button>
       ))}
     </div>
+  )
+}
+
+const groupDigits = (digits: string) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')
+
+/**
+ * Price field: digits are grouped by thousands while typing («20 000 000»), the caret stays
+ * where the person is typing. Reports plain digits («20000000»), or '' when empty.
+ */
+export function MoneyInput({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  label,
+  maxDigits = 12,
+}: {
+  value: string
+  onChange(digits: string): void
+  placeholder?: string
+  disabled?: boolean
+  label?: string
+  maxDigits?: number
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  const digitsBeforeCaret = useRef<number | null>(null)
+  const shown = groupDigits(value)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (digitsBeforeCaret.current == null || !el || document.activeElement !== el) return
+    let left = digitsBeforeCaret.current
+    let pos = 0
+    while (pos < shown.length && left > 0) {
+      if (/\d/.test(shown[pos])) left--
+      pos++
+    }
+    el.setSelectionRange(pos, pos)
+    digitsBeforeCaret.current = null
+  })
+
+  return (
+    <input
+      ref={ref}
+      className="field num"
+      inputMode="numeric"
+      autoComplete="off"
+      aria-label={label}
+      placeholder={placeholder}
+      disabled={disabled}
+      value={shown}
+      onChange={(e) => {
+        const el = e.target
+        digitsBeforeCaret.current = el.value.slice(0, el.selectionStart ?? el.value.length).replace(/\D/g, '').length
+        onChange(el.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, maxDigits))
+      }}
+    />
   )
 }

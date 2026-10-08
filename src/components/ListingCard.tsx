@@ -1,8 +1,8 @@
 import { Heart, Images, MapPin, Rocket } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useApp } from '../store/app'
+import { useApp } from '../store/useApp'
 import type { Listing } from '../types'
-import { formatDistance, formatPrice, formatUnit } from '../utils/format'
+import { formatDistance, formatPrice, formatUnit, typo } from '../utils/format'
 
 function FavButton({ id }: { id: string }) {
   const { isFavorite, toggleFavorite } = useApp()
@@ -34,14 +34,20 @@ export function Where({ l }: { l: Listing }) {
   )
 }
 
-export function ListingCard({ l }: { l: Listing }) {
+/** `isNew` — «Новое» badge: a match published since the person last opened the alert. */
+export function ListingCard({ l, isNew }: { l: Listing; isNew?: boolean }) {
   return (
     <Link to={`/listing/${l.id}`} className="card">
       <div className="card__media">
         <img src={l.photos[0]} alt="" loading="lazy" />
-        {l.promoted && (
-          <span className="card__badge pill pill--glass">
-            <Rocket size={10} strokeWidth={2.6} /> Поднято
+        {(isNew || l.promoted) && (
+          <span className="card__badges">
+            {isNew && <span className="pill pill--new">Новое</span>}
+            {l.promoted && (
+              <span className="pill pill--glass">
+                <Rocket size={10} strokeWidth={2.6} /> Поднято
+              </span>
+            )}
           </span>
         )}
         {l.photos.length > 1 && (
@@ -55,7 +61,7 @@ export function ListingCard({ l }: { l: Listing }) {
         {formatPrice(l)}
         <span className="card__unit">{formatUnit(l)}</span>
       </div>
-      <div className="card__title">{l.title}</div>
+      <div className="card__title">{typo(l.title)}</div>
       <Where l={l} />
     </Link>
   )
@@ -70,7 +76,7 @@ export function ListingRow({ l, aside }: { l: Listing; aside?: React.ReactNode }
           {formatPrice(l)}
           <span className="card__unit">{formatUnit(l)}</span>
         </div>
-        <div className="t-sub" style={{ marginTop: 1 }}>{l.title}</div>
+        <div className="t-sub" style={{ marginTop: 1 }}>{typo(l.title)}</div>
         <Where l={l} />
       </div>
       {aside}
@@ -83,7 +89,7 @@ export function CardSkeletons({ n = 4 }: { n?: number }) {
     <div className="grid" aria-busy="true" aria-label="Загрузка">
       {Array.from({ length: n }, (_, i) => (
         <div key={i}>
-          <div className="skeleton" style={{ aspectRatio: '4 / 5', borderRadius: 16 }} />
+          <div className="skeleton" style={{ aspectRatio: '4 / 5', borderRadius: 'var(--r-card)' }} />
           <div className="skeleton" style={{ height: 18, width: '50%', marginTop: 10 }} />
           <div className="skeleton" style={{ height: 14, width: '85%', marginTop: 8 }} />
         </div>
