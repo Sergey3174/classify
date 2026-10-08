@@ -482,6 +482,7 @@
 
 .my-item__foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -491,6 +492,7 @@
 
 .my-item__stats {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   white-space: nowrap;
   font-size: 12px;
@@ -506,6 +508,7 @@
 
 .my-item__actions {
   display: flex;
+  margin-left: auto;
   gap: 6px;
 }
 

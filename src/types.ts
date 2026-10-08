@@ -61,6 +61,7 @@ export interface Listing {
   attributes: { label: string; value: string }[]
   sellerId: string
   createdAt: string // ISO
+  expiresAt?: string // ISO expiration date; assigned by the backend, demo dates in mocks
   views: number
   favorites: number
   status: ListingStatus
@@ -95,6 +96,7 @@ export interface ListingFilters {
 
 /** Draft of a new listing while the user walks through the create wizard. */
 export interface ListingDraft {
+  attributes?: Record<string, string> // optional category-specific values
   categoryId?: CategoryId
   photos: string[]
   title: string

@@ -3,6 +3,7 @@
  * already handle loading states. To connect a real backend, keep these signatures
  * and replace the bodies with fetch() calls (see README → «API-контракт»).
  */
+import { listingAttributes } from '../data/categoryAttributes'
 import { listings as seed } from '../mocks/listings'
 import { alerts as seedAlerts } from '../mocks/alerts'
 import { cities, currencyOf } from '../mocks/reference'
@@ -114,7 +115,7 @@ export const api = {
       district: d.district || undefined,
       photos: d.photos,
       condition: d.condition,
-      attributes: [],
+      attributes: listingAttributes(d.categoryId, d.attributes),
       sellerId: ME_ID,
       createdAt: new Date().toISOString(),
       views: 0,
