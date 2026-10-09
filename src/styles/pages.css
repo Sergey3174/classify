@@ -689,3 +689,12 @@
 .first-loc__note {
   padding: 0 calc(var(--gutter) + 4px) 14px;
 }
+
+/* ---------- Promotion confirmation ---------- */
+.promote { padding: 8px 16px 16px; text-align: center; }
+.promote__icon { width: 60px; height: 60px; margin: 0 auto 16px; display: grid; place-items: center; border-radius: 50%; color: var(--accent); background: var(--accent-soft); }
+.promote__question { margin: 0 0 8px; }
+.promote__listing { margin: 0 0 20px; overflow-wrap: anywhere; }
+.promote__price { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 14px; border-radius: var(--r-cell); background: var(--section); }
+.promote__stars { display: inline-flex; align-items: center; gap: 6px; }
+.promote__stars svg { color: var(--rating); }

@@ -1,3 +1,4 @@
+import { PromoteSheet } from "../components/PromoteSheet";
 import {
   Archive,
   Bell,
@@ -35,8 +36,8 @@ import { cityById } from "../mocks/reference";
 import { ME_ID } from "../mocks/users";
 import { useApp } from "../store/useApp";
 import { haptic, openTelegramChat } from "../telegram/telegram";
-import type { ListingStatus } from "../types";
-import { formatAgo, formatCount, formatSince, plural } from "../utils/format";
+import type { Listing, ListingStatus } from "../types";
+import { formatCount, formatSince, plural } from "../utils/format";
 import { useAsync } from "../utils/useAsync";
 
 export function Favorites() {
@@ -118,6 +119,7 @@ export function MyListings() {
   const { showToast } = useApp();
   const [tab, setTab] = useState<ListingStatus>("active");
   const [rev, setRev] = useState(0);
+  const [promoting, setPromoting] = useState<Listing | null>(null);
   const { data, loading } = useAsync(() => api.getMyListings(), [rev]);
   const items = (data ?? []).filter((l) => l.status === tab);
   const count = (s: ListingStatus) =>
@@ -162,7 +164,8 @@ export function MyListings() {
                 <div className="my-item__foot">
                   {tab === "moderation" ? (
                     <span className="pill pill--warning">
-                      Проверяем · {formatAgo(l.createdAt)}
+                      Проверяем
+                      {/* · {formatAgo(l.createdAt)} */}
                     </span>
                   ) : (
                     <span
@@ -179,7 +182,9 @@ export function MyListings() {
                         <span title="Срок размещения">
                           <CalendarDays size={13} aria-hidden="true" />
                           <time dateTime={l.expiresAt}>
-                            {new Date(l.expiresAt).toLocaleDateString("ru-RU", { timeZone: "UTC" })}
+                            {new Date(l.expiresAt).toLocaleDateString("ru-RU", {
+                              timeZone: "UTC",
+                            })}
                           </time>
                         </span>
                       )}
@@ -203,12 +208,10 @@ export function MyListings() {
                         <button
                           type="button"
                           className="btn btn--tinted btn--sm"
-                          onClick={() =>
-                            act(
-                              () => api.promote(l.id),
-                              "Объявление поднято в ленте",
-                            )
-                          }
+                          onClick={() => {
+                            haptic.tap();
+                            setPromoting(l);
+                          }}
                         >
                           <Rocket size={14} /> Поднять
                         </button>
@@ -264,6 +267,19 @@ export function MyListings() {
           />
         )}
       </div>
+      {promoting && (
+        <PromoteSheet
+          listing={promoting}
+          stars={100}
+          onClose={() => setPromoting(null)}
+          onPromote={async () => {
+            await api.promote(promoting.id);
+            haptic.success();
+            setRev((r) => r + 1);
+            showToast("Объявление поднято в ленте");
+          }}
+        />
+      )}
     </div>
   );
 }
