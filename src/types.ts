@@ -82,6 +82,7 @@ export interface Review {
 export type SortOrder = 'new' | 'near' | 'cheap' | 'expensive'
 
 export interface ListingFilters {
+  attributes?: Record<string, string> // exact category attribute values; blank fields are ignored
   query?: string
   categoryId?: CategoryId
   cityId?: string

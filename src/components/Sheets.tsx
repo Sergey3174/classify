@@ -1,3 +1,5 @@
+import { AttributeFilterField } from './AttributeFilterField'
+import { categoryAttributes } from '../data/categoryAttributes'
 import { useLazyDetectLocationQuery } from '../api/geolocation'
 import { Check, ChevronRight, LocateFixed, MapPin, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
@@ -215,6 +217,7 @@ export function FilterSheet({
   const { location } = useApp()
   const cur = currencies[currencyOf(location.cityId)]
   const [f, setF] = useState<ListingFilters>(value)
+  const fields = f.categoryId ? categoryAttributes[f.categoryId] : []
   const set = (patch: Partial<ListingFilters>) => setF((prev) => ({ ...prev, ...patch }))
 
   return (
@@ -265,6 +268,26 @@ export function FilterSheet({
         </div>
         <div className="section__footer">Цены в {cur.name} — валюте страны, где опубликовано объявление.</div>
       </div>
+
+      {fields.length > 0 && (
+        <div className="section">
+          <div className="section__header">Характеристики</div>
+          <div className="section__body">
+            {fields.map(([label, placeholder]) => (
+              <AttributeFilterField
+                key={label}
+                label={label}
+                placeholder={placeholder}
+                value={f.attributes?.[label] ?? ''}
+                onChange={(value) => set({ attributes: { ...f.attributes, [label]: value } })}
+                options={[...new Set(seedListings.filter((l) => l.categoryId === f.categoryId)
+                  .flatMap((l) => l.attributes.filter((a) => a.label === label).map((a) => a.value)))]}
+              />
+            ))}
+          </div>
+          <div className="section__footer">Выберите или введите точное значение. Ненужные поля оставьте пустыми.</div>
+        </div>
+      )}
 
       <div className="section">
         <div className="section__header">Состояние</div>

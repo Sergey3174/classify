@@ -25,7 +25,7 @@ export default function Search() {
   const [filters, setFilters] = useState<ListingFilters>({ sort: "new" });
   const [sheet, setSheet] = useState(false);
   const [alerting, setAlerting] = useState(false);
-  const categoryId = (params.get("cat") as CategoryId | null) ?? undefined;
+  const categoryId = categories.find((c) => c.id === params.get("cat"))?.id;
   const city = cityById(location.cityId);
   const categoryRow = useRef<HTMLDivElement>(null);
 
@@ -39,25 +39,40 @@ export default function Search() {
       const tab = selected.getBoundingClientRect();
       const style = getComputedStyle(row);
       const left = bounds.left + row.clientLeft + parseFloat(style.paddingLeft);
-      const right = bounds.left + row.clientLeft + row.clientWidth - parseFloat(style.paddingRight);
-      const offset = tab.left < left ? tab.left - left : tab.right > right ? tab.right - right : 0;
+      const right =
+        bounds.left +
+        row.clientLeft +
+        row.clientWidth -
+        parseFloat(style.paddingRight);
+      const offset =
+        tab.left < left
+          ? tab.left - left
+          : tab.right > right
+            ? tab.right - right
+            : 0;
       if (Math.abs(offset) > 1) {
         row.scrollBy({
           left: offset,
-          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches
+            ? "instant"
+            : "smooth",
         });
       }
     };
 
-    if (typeof IntersectionObserver === 'undefined') {
+    if (typeof IntersectionObserver === "undefined") {
       reveal();
       return;
     }
     // Check once per selection: swiping the category row must remain unrestricted.
-    const observer = new IntersectionObserver(() => {
-      observer.disconnect();
-      reveal();
-    }, { root: row, threshold: 1 });
+    const observer = new IntersectionObserver(
+      () => {
+        observer.disconnect();
+        reveal();
+      },
+      { root: row, threshold: 1 },
+    );
     observer.observe(selected);
     return () => observer.disconnect();
   }, [categoryId]);
@@ -66,6 +81,10 @@ export default function Search() {
     // search is limited to the chosen district (or the whole city when none is chosen)
     () => ({
       ...filters,
+      attributes:
+        categoryId && filters.categoryId === categoryId
+          ? filters.attributes
+          : undefined,
       query,
       categoryId,
       cityId: location.cityId,
@@ -87,9 +106,16 @@ export default function Search() {
       filters.delivery,
       filters.withPhoto,
     ].filter((v) => v !== undefined).length +
-    (filters.sort && filters.sort !== "new" ? 1 : 0);
+    (filters.sort && filters.sort !== "new" ? 1 : 0) +
+    Object.values(effective.attributes ?? {}).filter((v) => v.trim()).length;
 
   const setCategory = (id?: CategoryId) => {
+    if (id !== categoryId)
+      setFilters((prev) => ({
+        ...prev,
+        categoryId: id,
+        attributes: undefined,
+      }));
     const next = new URLSearchParams(params);
     if (id) next.set("cat", id);
     else next.delete("cat");
@@ -267,7 +293,7 @@ export default function Search() {
       )}
       {sheet && (
         <FilterSheet
-          value={filters}
+          value={{ ...filters, categoryId, attributes: effective.attributes }}
           onApply={setFilters}
           onClose={() => setSheet(false)}
         />

@@ -64,6 +64,13 @@ export const api = {
     if (f.delivery) res = res.filter((l) => l.delivery)
     if (f.priceFrom != null) res = res.filter((l) => l.price != null && l.price >= f.priceFrom!)
     if (f.priceTo != null) res = res.filter((l) => l.price != null && l.price <= f.priceTo!)
+    const attributeFilters = listingAttributes(f.categoryId, f.attributes)
+    const normalizeAttribute = (value: string) => value.trim().toLocaleLowerCase('ru-RU').replace(/\s+/g, '')
+    if (attributeFilters.length) {
+      res = res.filter((l) => attributeFilters.every((filter) => l.attributes.some(
+        (attribute) => attribute.label === filter.label && normalizeAttribute(attribute.value) === normalizeAttribute(filter.value),
+      )))
+    }
     const sort = f.sort ?? 'new'
     res.sort((a, b) => {
       if (sort === 'cheap') return price(a) - price(b)
