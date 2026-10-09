@@ -1,4 +1,4 @@
-# Classify — дизайн-система
+# Classifieds — дизайн-система
 
 Описание того, что реально есть в коде: [src/styles/global.css](src/styles/global.css) (токены и базовые компоненты) и [src/styles/pages.css](src/styles/pages.css) (экраны). Если документ и CSS расходятся, прав CSS — поправьте документ.
 

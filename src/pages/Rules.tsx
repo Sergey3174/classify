@@ -1,7 +1,7 @@
 import { AppBar } from '../components/Chrome'
 
 /**
- * Rules of Classify. Base text written for this product (typical classifieds structure),
+ * Rules of Classifieds. Base text written for this product (typical classifieds structure),
  * a DRAFT: it must be reviewed by the owner/lawyer before launch. Shown as a page from
  * «Мой профиль» and in a sheet from the create wizard (so the draft is not lost).
  */
@@ -10,11 +10,11 @@ const RULES_EDITION = '9 октября 2026'
 
 const sections: { title: string; items: string[] }[] = [
   {
-    title: '1. Что такое Classify',
+    title: '1. Что такое Classifieds',
     items: [
-      'Classify — доска объявлений в Telegram для русскоязычных, живущих за рубежом. Мы помогаем найти и разместить объявление рядом с вами, в вашем городе и районе.',
-      'Сделки заключаются напрямую между пользователями. Classify не является продавцом, покупателем или посредником, не принимает оплату за товары и услуги из объявлений и не отвечает за их качество и исполнение договорённостей.',
-      'Пользуясь Classify, вы соглашаетесь с этими правилами.',
+      'Classifieds — доска объявлений в Telegram для русскоязычных, живущих за рубежом. Мы помогаем найти и разместить объявление рядом с вами, в вашем городе и районе.',
+      'Сделки заключаются напрямую между пользователями. Classifieds не является продавцом, покупателем или посредником, не принимает оплату за товары и услуги из объявлений и не отвечает за их качество и исполнение договорённостей.',
+      'Пользуясь Classifieds, вы соглашаетесь с этими правилами.',
     ],
   },
   {
@@ -70,7 +70,7 @@ const sections: { title: string; items: string[] }[] = [
     items: [
       'Для работы мы используем данные вашего Telegram-аккаунта: имя, username и фото профиля.',
       'Документы для проверки личности обрабатывает сервис проверки. Мы храним только результат — пройдена проверка или нет.',
-      'Объявления, которые вы публикуете, видят все пользователи Classify.',
+      'Объявления, которые вы публикуете, видят все пользователи Classifieds.',
     ],
   },
   {
@@ -104,7 +104,7 @@ export function RulesContent() {
 export default function Rules() {
   return (
     <div className="page page--grouped">
-      <AppBar back title="Правила" sub="Условия использования Classify" />
+      <AppBar back title="Правила" sub="Условия использования Classifieds" />
       <RulesContent />
     </div>
   )

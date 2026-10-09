@@ -5,6 +5,9 @@ const avatar = (seed: string) => `https://i.pravatar.cc/160?u=${seed}`;
 /** The signed-in user (in production this comes from Telegram initData). */
 export const ME_ID = "u1";
 
+// Demo activity timestamps, unrelated to Telegram online status.
+const lastSeen = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+
 export const users: User[] = [
   // the signed-in user starts without KYC, so the flow in «Мой профиль → Проверка личности» can be tried
   {
@@ -17,7 +20,7 @@ export const users: User[] = [
     reviewsCount: 23,
     registeredAt: "2025-03-12",
     kyc: "none",
-    responseTime: "обычно отвечает за 10 минут",
+    lastSeenAt: lastSeen(10),
   },
   {
     id: "u2",
@@ -29,7 +32,7 @@ export const users: User[] = [
     reviewsCount: 41,
     registeredAt: "2024-11-02",
     kyc: "verified",
-    responseTime: "обычно отвечает за час",
+    lastSeenAt: lastSeen(60),
   },
   {
     id: "u3",
@@ -41,7 +44,7 @@ export const users: User[] = [
     reviewsCount: 12,
     registeredAt: "2025-06-20",
     kyc: "none",
-    responseTime: "обычно отвечает в течение дня",
+    lastSeenAt: lastSeen(1440),
   },
   {
     id: "u4",
@@ -53,7 +56,7 @@ export const users: User[] = [
     reviewsCount: 87,
     registeredAt: "2023-08-15",
     kyc: "verified",
-    responseTime: "обычно отвечает за 5 минут",
+    lastSeenAt: lastSeen(5),
   },
   {
     id: "u5",
@@ -65,7 +68,7 @@ export const users: User[] = [
     reviewsCount: 7,
     registeredAt: "2026-01-09",
     kyc: "none",
-    responseTime: "обычно отвечает за 2 часа",
+    lastSeenAt: lastSeen(120),
   },
   {
     id: "u6",
@@ -77,7 +80,7 @@ export const users: User[] = [
     reviewsCount: 19,
     registeredAt: "2025-02-28",
     kyc: "verified",
-    responseTime: "обычно отвечает за 30 минут",
+    lastSeenAt: lastSeen(30),
   },
 ];
 

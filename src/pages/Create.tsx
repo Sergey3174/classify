@@ -545,7 +545,7 @@ export default function Create() {
                 className="link"
                 onClick={() => setRulesOpen(true)}
               >
-                правилами Classify
+                правилами Classifieds
               </button>
               . Объявление появится после проверки модератором.
             </div>
@@ -573,7 +573,7 @@ export default function Create() {
         />
       )}
       {rulesOpen && (
-        <Sheet title="Правила Classify" onClose={() => setRulesOpen(false)}>
+        <Sheet title="Правила Classifieds" onClose={() => setRulesOpen(false)}>
           <RulesContent />
         </Sheet>
       )}

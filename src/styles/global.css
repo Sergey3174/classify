@@ -1,4 +1,4 @@
-/* Classify — Telegram-native design system in the Fragment dark palette
+/* Classifieds — Telegram-native design system in the Fragment dark palette
    (colours sampled from fragment.com). Dark only: the app keeps this palette
    regardless of the user's Telegram theme (there is no light theme). */
 
@@ -205,6 +205,18 @@ img {
   transition: background-color 0.2s;
 }
 
+.row_cell {
+  padding-top: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  background: var(--section);
+  transition: background-color 0.2s;
+}
+
 button.cell:active,
 a.cell:active {
   background: var(--fill);
@@ -311,7 +323,7 @@ a.cell:active {
   color: var(--text);
 }
 
-/* inline text link inside running text (e.g. «правилами Classify») */
+/* inline text link inside running text (e.g. «правилами Classifieds») */
 .link {
   display: inline;
   color: var(--link);

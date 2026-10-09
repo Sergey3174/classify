@@ -7,7 +7,6 @@ import {
   MessageCircle,
   Share2,
   ShieldCheck,
-  Star,
   Truck,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -20,6 +19,7 @@ import { ListingCard } from "../components/ListingCard";
 import { useApp } from "../store/useApp";
 import { haptic, openTelegramChat } from "../telegram/telegram";
 import {
+  formatLastSeen,
   formatAgo,
   formatCount,
   formatDistance,
@@ -262,7 +262,7 @@ export default function Listing() {
                 {seller.name}
                 <KycMark user={seller} />
               </div>
-              <div
+              {/* <div
                 className="cell__subtitle"
                 style={{ display: "flex", alignItems: "center", gap: 6 }}
               >
@@ -272,6 +272,12 @@ export default function Listing() {
                 </span>
                 · {seller.reviewsCount}{" "}
                 {plural(seller.reviewsCount, "отзыв", "отзыва", "отзывов")}
+              </div> */}
+              <div className="row_cell">
+                <Clock size={16} color="var(--hint)" />
+                <div className="cell__body t-sub hint">
+                  {formatLastSeen(seller.lastSeenAt)}
+                </div>
               </div>
             </div>
             <ChevronRight size={18} className="cell__chev" strokeWidth={2.4} />
@@ -282,13 +288,6 @@ export default function Listing() {
               <div className="cell__body t-sub">Личность подтверждена</div>
             </div>
           )}
-          <div className="cell">
-            <Clock size={16} color="var(--hint)" />
-            <div className="cell__body t-sub hint">
-              {seller.responseTime[0].toUpperCase() +
-                seller.responseTime.slice(1)}
-            </div>
-          </div>
         </div>
       </div>
 

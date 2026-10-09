@@ -327,7 +327,7 @@ export function UserProfile() {
           <KycMark user={user} size={18} />
         </div>
         <div className="t-sub hint">
-          {cityById(user.city)?.title} · на Classify с{" "}
+          {cityById(user.city)?.title} · на Classifieds с{" "}
           {formatSince(user.registeredAt)}
         </div>
         {user.kyc === "verified" && (
@@ -368,7 +368,7 @@ export function UserProfile() {
           </div>
         </div>
         <div className="section__footer">
-          {user.responseTime[0].toUpperCase() + user.responseTime.slice(1)}
+          {formatLastSeen(user.lastSeenAt)}
         </div>
       </div> */}
 
@@ -563,7 +563,7 @@ export function Me() {
           className="section__footer"
           style={{ textAlign: "center", paddingTop: 16 }}
         >
-          Classify · макет на моковых данных
+          TWA Classifieds
         </div>
       </div>
 

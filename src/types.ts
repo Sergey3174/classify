@@ -39,7 +39,7 @@ export interface User {
   reviewsCount: number
   registeredAt: string // ISO date
   kyc: KycStatus // отметка «Личность подтверждена» — только при 'verified'
-  responseTime: string // "обычно отвечает за 10 минут"
+  lastSeenAt: string | null // ISO timestamp of last app activity; null if unknown
 }
 
 export type ListingStatus = 'active' | 'moderation' | 'archived' | 'rejected'
