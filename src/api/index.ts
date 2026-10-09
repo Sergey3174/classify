@@ -6,7 +6,7 @@
 import { listingAttributes } from '../data/categoryAttributes'
 import { listings as seed } from '../mocks/listings'
 import { alerts as seedAlerts } from '../mocks/alerts'
-import { cities, currencyOf } from '../mocks/reference'
+import { currencyOf } from '../mocks/reference'
 import { ME_ID, reviews, userById } from '../mocks/users'
 import type { Alert, AlertDraft, AlertSummary, Listing, ListingDraft, ListingFilters } from '../types'
 
@@ -195,17 +195,4 @@ export const api = {
     return wait(me.kyc, 600)
   },
 
-  /* ---------- location by IP ---------- */
-
-  /**
-   * Mock of «город по IP». The real server looks the request's IP up in a GeoIP base and
-   * returns a city from our list, or null (unknown IP / city we do not cover). IP gives a
-   * city at best — never a district.
-   * For trying the flow in a browser: `?geo=fail` → not detected, `?geo=bangkok` → that city.
-   */
-  async detectLocation(): Promise<{ cityId: string } | null> {
-    const forced = new URLSearchParams(window.location.search).get('geo')
-    const cityId = forced ?? 'bali'
-    return wait(cities.some((c) => c.id === cityId) ? { cityId } : null, 900)
-  },
 }

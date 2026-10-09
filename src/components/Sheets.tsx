@@ -1,5 +1,6 @@
+import { useLazyDetectLocationQuery } from '../api/geolocation'
 import { Check, ChevronRight, LocateFixed, MapPin, Search, X } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { listings as seedListings } from '../mocks/listings'
 import { api, MAX_ACTIVE_ALERTS } from '../api'
 import { useAsync } from '../utils/useAsync'
@@ -16,32 +17,34 @@ export function Sheet({
   onClose,
   children,
   footer,
+  dismissible = true,
 }: {
   title: string
   onClose(): void
   children: ReactNode
   footer?: ReactNode
+  dismissible?: boolean
 }) {
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && dismissible && onClose()
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
     }
-  }, [onClose])
+  }, [onClose, dismissible])
 
   return (
     <>
-      <div className="sheet-backdrop" onClick={onClose} />
+      <div className="sheet-backdrop" onClick={dismissible ? onClose : undefined} />
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title}>
         <div className="sheet__grabber" />
         <div className="sheet__head">
           <div className="t-title3">{title}</div>
-          <button type="button" className="sheet__close" onClick={onClose} aria-label="Закрыть">
+          {dismissible && <button type="button" className="sheet__close" onClick={onClose} aria-label="Закрыть">
             <X size={16} strokeWidth={2.6} />
-          </button>
+          </button>}
         </div>
         <div className="sheet__body">{children}</div>
         {footer && <div className="sheet__foot">{footer}</div>}
@@ -51,12 +54,12 @@ export function Sheet({
 }
 
 /** Country → city → district picker. Locality is the product's main filter. */
-export function LocationSheet({ onClose }: { onClose(): void }) {
+export function LocationSheet({ onClose, required = false }: { onClose(): void; required?: boolean }) {
   const { location, setLocation, showToast } = useApp()
   const [cityId, setCityId] = useState(location.cityId)
   const [district, setDistrict] = useState<string | null>(location.district)
   const [query, setQuery] = useState('')
-  const city = cities.find((c) => c.id === cityId)!
+  const city = cities.find((c) => c.id === cityId)
 
   const q = query.trim().toLowerCase()
   const visible = cities.filter(
@@ -68,34 +71,46 @@ export function LocationSheet({ onClose }: { onClose(): void }) {
   const total = count(cityId, district)
 
   const apply = () => {
+    if (!city) return
     haptic.success()
     setLocation({ cityId, district, source: 'manual' })
     onClose()
   }
 
-  const [detecting, setDetecting] = useState(false)
+  const [detectLocation, { isFetching: detecting }] = useLazyDetectLocationQuery()
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
   const detect = async () => {
-    setDetecting(true)
-    const res = await api.detectLocation()
-    setDetecting(false)
-    if (!res) {
+    try {
+      const res = await detectLocation().unwrap()
+      if (!mounted.current) return
+      if (!res) {
+        haptic.error()
+        showToast('Не получилось определить — выберите город вручную')
+        return
+      }
+      haptic.success()
+      setLocation({ cityId: res.cityId, district: null, source: 'auto' })
+      showToast('Определили: ' + cities.find((c) => c.id === res.cityId)?.title)
+      onClose()
+    } catch {
+      if (!mounted.current) return
       haptic.error()
       showToast('Не получилось определить — выберите город вручную')
-      return
     }
-    haptic.success()
-    setLocation({ cityId: res.cityId, district: null, source: 'auto' })
-    showToast(`Определили: ${cities.find((c) => c.id === res.cityId)?.title}`)
-    onClose()
   }
 
   return (
     <Sheet
       title="Где ищем"
+      dismissible={!required}
       onClose={onClose}
       footer={
-        <button type="button" className="btn btn--primary btn--block" onClick={apply}>
-          {total ? `Показать ${total} ${plural(total, 'объявление', 'объявления', 'объявлений')}` : `Выбрать ${district ?? city.title}`}
+        <button type="button" className="btn btn--primary btn--block" onClick={apply} disabled={!city}>
+          {total ? `Показать ${total} ${plural(total, 'объявление', 'объявления', 'объявлений')}` : city ? 'Выбрать ' + (district ?? city.title) : 'Выберите город'}
         </button>
       }
     >
