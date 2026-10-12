@@ -44,8 +44,10 @@ export interface User {
 
 export type ListingStatus = 'active' | 'moderation' | 'archived' | 'rejected'
 export type Condition = 'new' | 'used'
+export type DealType = 'rent' | 'sale'
 
 export interface Listing {
+  dealType?: DealType // omitted for services, jobs and other non-sale/rental listings
   id: string
   title: string
   description: string
@@ -82,6 +84,7 @@ export interface Review {
 export type SortOrder = 'new' | 'near' | 'cheap' | 'expensive'
 
 export interface ListingFilters {
+  dealType?: DealType // omitted for services, jobs and other non-sale/rental listings
   attributes?: Record<string, string> // exact category attribute values; blank fields are ignored
   query?: string
   categoryId?: CategoryId
@@ -97,6 +100,7 @@ export interface ListingFilters {
 
 /** Draft of a new listing while the user walks through the create wizard. */
 export interface ListingDraft {
+  dealType?: DealType // omitted for services, jobs and other non-sale/rental listings
   attributes?: Record<string, string> // optional category-specific values
   categoryId?: CategoryId
   photos: string[]

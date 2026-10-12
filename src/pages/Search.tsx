@@ -1,3 +1,4 @@
+import { supportsDelivery } from '../data/categoryRules';
 import {
   Bell,
   Search as SearchIcon,
@@ -81,6 +82,7 @@ export default function Search() {
     // search is limited to the chosen district (or the whole city when none is chosen)
     () => ({
       ...filters,
+      delivery: supportsDelivery(categoryId) ? filters.delivery : undefined,
       attributes:
         categoryId && filters.categoryId === categoryId
           ? filters.attributes
@@ -103,7 +105,8 @@ export default function Search() {
       filters.priceFrom,
       filters.priceTo,
       filters.condition,
-      filters.delivery,
+      filters.dealType,
+      effective.delivery,
       filters.withPhoto,
     ].filter((v) => v !== undefined).length +
     (filters.sort && filters.sort !== "new" ? 1 : 0) +
@@ -114,6 +117,7 @@ export default function Search() {
       setFilters((prev) => ({
         ...prev,
         categoryId: id,
+        delivery: supportsDelivery(id) ? prev.delivery : undefined,
         attributes: undefined,
       }));
     const next = new URLSearchParams(params);
@@ -293,7 +297,7 @@ export default function Search() {
       )}
       {sheet && (
         <FilterSheet
-          value={{ ...filters, categoryId, attributes: effective.attributes }}
+          value={{ ...filters, categoryId, attributes: effective.attributes, delivery: effective.delivery }}
           onApply={setFilters}
           onClose={() => setSheet(false)}
         />

@@ -1,3 +1,4 @@
+import { supportsDelivery } from '../data/categoryRules'
 /**
  * Mock API. Every function returns a Promise with an artificial delay so screens
  * already handle loading states. To connect a real backend, keep these signatures
@@ -60,8 +61,9 @@ export const api = {
     if (f.cityId) res = res.filter((l) => l.cityId === f.cityId)
     if (f.district) res = res.filter((l) => l.district?.includes(f.district!))
     if (f.condition) res = res.filter((l) => l.condition === f.condition)
+    if (f.dealType) res = res.filter((l) => l.dealType === f.dealType)
     if (f.withPhoto) res = res.filter((l) => l.photos.length > 0)
-    if (f.delivery) res = res.filter((l) => l.delivery)
+    if (f.delivery && supportsDelivery(f.categoryId)) res = res.filter((l) => l.delivery)
     if (f.priceFrom != null) res = res.filter((l) => l.price != null && l.price >= f.priceFrom!)
     if (f.priceTo != null) res = res.filter((l) => l.price != null && l.price <= f.priceTo!)
     const attributeFilters = listingAttributes(f.categoryId, f.attributes)
@@ -114,6 +116,7 @@ export const api = {
     const l: Listing = {
       id: `l${Date.now()}`,
       title: d.title.trim(),
+      dealType: d.dealType,
       description: d.description.trim(),
       price: d.negotiable || !d.price ? null : Number(d.price),
       currency: currencyOf(d.cityId!),

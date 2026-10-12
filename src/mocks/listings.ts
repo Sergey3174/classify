@@ -51,6 +51,7 @@ const ago = (hours: number) =>
 export const listings: Listing[] = [
   {
     id: "l1",
+    dealType: "rent",
     title: "Вилла 2 спальни с бассейном",
     price: 29_000_000,
     priceUnit: "month",
@@ -78,6 +79,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l2",
+    dealType: "sale",
     title: "KTM 790 Duke, 2022",
     price: 118_000_000,
     currency: "IDR",
@@ -104,6 +106,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l3",
+    dealType: "sale",
     title: "iPhone 15 Pro, 256 ГБ",
     price: 14_500_000,
     currency: "IDR",
@@ -152,6 +155,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l5",
+    dealType: "sale",
     title: "MacBook Air M2, 16/512",
     price: 15_500_000,
     currency: "IDR",
@@ -178,6 +182,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l6",
+    dealType: "rent",
     title: "Дом с садом, 3 спальни",
     price: 39_000_000,
     priceUnit: "month",
@@ -202,6 +207,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l7",
+    dealType: "sale",
     title: "PlayStation 5 Slim + 2 геймпада",
     price: 7_200_000,
     currency: "IDR",
@@ -225,6 +231,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l8",
+    dealType: "sale",
     title: "Диван, зелёный бархат",
     price: 3_900_000,
     currency: "IDR",
@@ -270,6 +277,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l10",
+    dealType: "sale",
     title: "Монстера в горшке, 1,2 м",
     price: 450_000,
     currency: "IDR",
@@ -290,6 +298,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l11",
+    dealType: "sale",
     title: "Sony WH-1000XM5",
     price: 3_700_000,
     currency: "IDR",
@@ -311,6 +320,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l12",
+    dealType: "sale",
     title: "Sony A7 III + 2 объектива",
     price: 18_000_000,
     currency: "IDR",
@@ -334,6 +344,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l13",
+    dealType: "rent",
     title: "Студия в центре, 24 м²",
     price: 17_000,
     priceUnit: "month",
@@ -358,6 +369,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l14",
+    dealType: "sale",
     title: "Yamaha R6, 2021",
     price: 230_000,
     currency: "THB",
@@ -405,6 +417,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l16",
+    dealType: "sale",
     title: "Акустическая гитара Yamaha FG830",
     price: 600,
     currency: "GEL",
@@ -425,6 +438,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l17",
+    dealType: "sale",
     title: "Кожаная косуха, размер M",
     price: 320,
     currency: "GEL",
@@ -447,6 +461,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l18",
+    dealType: "sale",
     title: "Велосипед fixed gear",
     price: 2_900_000,
     currency: "IDR",
@@ -468,6 +483,7 @@ export const listings: Listing[] = [
   // объявления текущего пользователя в других статусах — для экрана «Мои объявления»
   {
     id: "l19",
+    dealType: "sale",
     title: "Доска для сёрфинга 7'2\"",
     price: 3_600_000,
     currency: "IDR",
@@ -487,6 +503,7 @@ export const listings: Listing[] = [
   },
   {
     id: "l20",
+    dealType: "sale",
     title: "Смарт-часы, белые",
     price: 1_450_000,
     currency: "IDR",
