@@ -632,6 +632,12 @@ a.cell:active {
   gap: 4px;
 }
 
+.card__deal-type {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+}
+
 .card__count {
   position: absolute;
   left: 6px;

@@ -55,6 +55,11 @@ export function ListingCard({ l, isNew }: { l: Listing; isNew?: boolean }) {
             <Images size={10} strokeWidth={2.6} /> {l.photos.length}
           </span>
         )}
+        {(l.categoryId === 'realty' || l.categoryId === 'transport') && l.dealType && (
+          <span className="card__deal-type pill pill--glass">
+            {l.dealType === 'rent' ? 'Аренда' : 'Продажа'}
+          </span>
+        )}
         <FavButton id={l.id} />
       </div>
       <div className="card__price num">

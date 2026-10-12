@@ -1,4 +1,4 @@
-import { supportsDelivery } from "../data/categoryRules";
+import { supportsDelivery, supportsDealTypeFilter } from "../data/categoryRules";
 import { AttributeFilterField } from "./AttributeFilterField";
 import { categoryAttributes } from "../data/categoryAttributes";
 import { useLazyDetectLocationQuery } from "../api/geolocation";
@@ -355,6 +355,7 @@ export function FilterSheet({
               haptic.tap();
               onApply({
                 ...f,
+                dealType: supportsDealTypeFilter(f.categoryId) ? f.dealType : undefined,
                 delivery: supportsDelivery(f.categoryId)
                   ? f.delivery
                   : undefined,
@@ -367,6 +368,7 @@ export function FilterSheet({
         </div>
       }
     >
+      {supportsDealTypeFilter(f.categoryId) && (
       <div className="section">
         <div className="section__header">Тип объявления</div>
         <Segmented<"any" | DealType>
@@ -379,6 +381,7 @@ export function FilterSheet({
           onChange={(v) => set({ dealType: v === "any" ? undefined : v })}
         />
       </div>
+      )}
 
       <div className="section">
         <div className="section__header">Сортировка</div>

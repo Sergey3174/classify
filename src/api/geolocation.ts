@@ -26,7 +26,7 @@ const matches = [
     regions: [],
   },
   { id: "dubai", country: "AE", cities: ["dubai"], regions: [] },
-  { id: "tbilisi", country: "GE", cities: ["tbilisi"], regions: [] },
+  // { id: "tbilisi", country: "GE", cities: ["tbilisi"], regions: [] },
 ];
 
 export function matchLocation(response: unknown): { cityId: string } | null {
