@@ -24,7 +24,7 @@ interface TgMainButton extends TgButton {
 
 interface TgWebApp {
   initData: string
-  initDataUnsafe: { user?: { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } }
+  initDataUnsafe: { start_param?: string; user?: { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } }
   colorScheme: 'light' | 'dark'
   platform: string
   ready(): void
@@ -57,8 +57,21 @@ export const tg: TgWebApp | undefined = window.Telegram?.WebApp
 /** True only inside a real Telegram client (initData is empty in a plain browser). */
 export const isTelegram = Boolean(tg && tg.initData)
 
+export function listingMiniAppUrl(id: string) {
+  return `https://t.me/test_classifyv1_bot?startapp=${encodeURIComponent(`listing_${id}`)}`
+}
+
 export function initTelegram() {
   if (!tg) return
+  const startParam = tg.initDataUnsafe.start_param
+    ?? new URLSearchParams(window.location.search).get('tgWebAppStartParam')
+  const listingId = /^listing_([A-Za-z0-9_-]{1,504})$/.exec(startParam ?? '')?.[1]
+  if (listingId) {
+    // Apply the launch destination once, before BrowserRouter is mounted.
+    const url = new URL(window.location.href)
+    url.pathname = `/listing/${listingId}`
+    window.history.replaceState(window.history.state, '', url)
+  }
   tg.ready()
   tg.expand()
   // Fragment-dark identity: paint Telegram's own header and background to match.

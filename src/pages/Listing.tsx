@@ -18,7 +18,7 @@ import { AppBar, Empty, MainAction } from "../components/Chrome";
 import { KycMark } from "../components/Kyc";
 import { ListingCard } from "../components/ListingCard";
 import { useApp } from "../store/useApp";
-import { haptic, openTelegramChat } from "../telegram/telegram";
+import { haptic, isTelegram, listingMiniAppUrl, openTelegramChat, tg } from "../telegram/telegram";
 import {
   formatLastSeen,
   formatAgo,
@@ -119,15 +119,19 @@ export default function Listing() {
   };
   const edit = () => navigate("/create", { state: { editing: l } });
   const share = async () => {
-    const url = `${window.location.origin}/listing/${l.id}`;
+    const url = listingMiniAppUrl(l.id);
     try {
-      if (navigator.share) await navigator.share({ title: l.title, url });
-      else {
-        await navigator.clipboard.writeText(url);
-        showToast("Ссылка скопирована");
+      if (isTelegram && tg) {
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(l.title)}`;
+        tg.openTelegramLink(shareUrl);
+      } else if (navigator.share) {
+        await navigator.share({ title: l.title, url });
+      } else {
+        showToast("Используйте «Поделиться» в меню браузера");
       }
-    } catch {
-      /* user cancelled share sheet */
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      showToast("Не удалось поделиться. Попробуйте ещё раз");
     }
   };
 

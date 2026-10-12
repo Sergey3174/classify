@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  build: {
-    outDir: "build",
+  server: {
+    allowedHosts: ["arden-strychnic-pleasingly.ngrok-free.dev"],
   },
 });
