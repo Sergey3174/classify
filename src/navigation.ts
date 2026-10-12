@@ -44,31 +44,36 @@ function fallbackParent(pathname: string) {
 
 const pathOf = (pathname: string) => pathname.split('?')[0]
 
-let stack: string[] = []
+interface NavEntry { path: string; state: unknown }
+let stack: NavEntry[] = []
 
 /** Called on every location change (once, in the app shell). */
-function track(path: string) {
+function track(path: string, state: unknown) {
+  const entry: NavEntry = { path, state }
   const pathname = pathOf(path)
   const kind = kindOf(pathname)
   if (kind === 'root') {
-    stack = [path]
+    stack = [entry]
     return
   }
   // went back to the previous screen
-  if (stack.length > 1 && stack[stack.length - 2] === path) {
-    stack = stack.slice(0, -1)
+  if (stack.length > 1 && stack[stack.length - 2].path === path) {
+    stack = [...stack.slice(0, -2), entry]
     return
   }
-  if (stack[stack.length - 1] === path) return
+  if (stack[stack.length - 1]?.path === path) {
+    stack[stack.length - 1] = entry
+    return
+  }
   // at most one screen of each kind in the path: the older one drops out
-  stack = [...stack.filter((p) => kindOf(pathOf(p)) !== kind), path]
+  stack = [...stack.filter((p) => kindOf(pathOf(p.path)) !== kind), entry]
 }
 
 export function useNavTracking() {
-  const { pathname, search } = useLocation()
+  const { pathname, search, state } = useLocation()
   useEffect(() => {
-    track(pathname + search)
-  }, [pathname, search])
+    track(pathname + search, state)
+  }, [pathname, search, state])
 }
 
 /** A screen may take over «Назад» (the create wizard steps back instead of leaving). */
@@ -94,7 +99,10 @@ export function useGoBack() {
   return useCallback(
     (opts: { ignoreOverride?: boolean } = {}) => {
       if (backOverride && !opts.ignoreOverride) return backOverride()
-      if (stack.length > 1) return navigate(stack[stack.length - 2], { replace: true })
+      if (stack.length > 1) {
+        const previous = stack[stack.length - 2]
+        return navigate(previous.path, { replace: true, state: previous.state })
+      }
       stack = [] // no path: start a fresh one from the parent
       navigate(fallbackParent(pathname), { replace: true })
     },

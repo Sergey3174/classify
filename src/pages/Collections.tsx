@@ -31,7 +31,7 @@ import {
   ListingRow,
   RowSkeletons,
 } from "../components/ListingCard";
-import { LocationSheet } from "../components/Sheets";
+import { LocationSheet, Sheet } from "../components/Sheets";
 import { cityById } from "../mocks/reference";
 import { ME_ID } from "../mocks/users";
 import { useApp } from "../store/useApp";
@@ -120,6 +120,7 @@ export function MyListings() {
   const [tab, setTab] = useState<ListingStatus>("active");
   const [rev, setRev] = useState(0);
   const [promoting, setPromoting] = useState<Listing | null>(null);
+  const [moderationNotice, setModerationNotice] = useState(false);
   const { data, loading } = useAsync(() => api.getMyListings(), [rev]);
   const items = (data ?? []).filter((l) => l.status === tab);
   const count = (s: ListingStatus) =>
@@ -159,7 +160,10 @@ export function MyListings() {
           <div className="section__body">
             {items.map((l) => (
               <div key={l.id} className="my-item">
-                <ListingRow l={l} />
+                <ListingRow l={l} fromMy onOpen={l.status === 'moderation' ? () => {
+                  haptic.tap();
+                  setModerationNotice(true);
+                } : undefined} />
                 {/* one footer per listing: status / stats on the left, actions on the right */}
                 <div className="my-item__foot">
                   {tab === "moderation" ? (
@@ -267,6 +271,14 @@ export function MyListings() {
           />
         )}
       </div>
+      {moderationNotice && (
+        <Sheet title="Объявление на проверке" onClose={() => setModerationNotice(false)}
+          footer={<button type="button" className="btn btn--primary btn--block" onClick={() => setModerationNotice(false)}>Понятно</button>}>
+          <div className="section">
+            <p className="t-body" style={{ margin: 0 }}>Нельзя редактировать объявления, которые находятся на проверке. Дождитесь завершения проверки.</p>
+          </div>
+        </Sheet>
+      )}
       {promoting && (
         <PromoteSheet
           listing={promoting}

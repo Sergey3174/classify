@@ -72,9 +72,9 @@ export function ListingCard({ l, isNew }: { l: Listing; isNew?: boolean }) {
   )
 }
 
-export function ListingRow({ l, aside }: { l: Listing; aside?: React.ReactNode }) {
-  return (
-    <Link to={`/listing/${l.id}`} className="row">
+export function ListingRow({ l, aside, fromMy = false, onOpen }: { l: Listing; aside?: React.ReactNode; fromMy?: boolean; onOpen?(): void }) {
+  const content = (
+    <>
       <img className="row__thumb" src={l.photos[0]} alt="" loading="lazy" />
       <div className="row__body">
         <div className="t-headline num">
@@ -85,7 +85,12 @@ export function ListingRow({ l, aside }: { l: Listing; aside?: React.ReactNode }
         <Where l={l} />
       </div>
       {aside}
-    </Link>
+    </>
+  )
+  return onOpen ? (
+    <button type="button" className="row" onClick={onOpen}>{content}</button>
+  ) : (
+    <Link to={`/listing/${l.id}`} state={fromMy ? { from: '/my' } : undefined} className="row">{content}</Link>
   )
 }
 

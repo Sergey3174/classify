@@ -5,12 +5,13 @@ import {
   Heart,
   MapPin,
   MessageCircle,
+  Pencil,
   Share2,
   ShieldCheck,
   Truck,
 } from "lucide-react";
 import { useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { categoryById, cityById } from "../mocks/reference";
 import { AppBar, Empty, MainAction } from "../components/Chrome";
@@ -63,11 +64,15 @@ function Gallery({ photos, title }: { photos: string[]; title: string }) {
 
 export default function Listing() {
   const { id = "" } = useParams();
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const fromMy = state?.from === "/my";
   const { isFavorite, toggleFavorite, showToast } = useApp();
   const { data, loading, error } = useAsync(() => api.getListing(id), [id]);
   const similar = useAsync(
-    () => (data ? api.getSimilar(data.listing) : Promise.resolve([])),
-    [data?.listing.id],
+    () =>
+      data && !fromMy ? api.getSimilar(data.listing) : Promise.resolve([]),
+    [data?.listing.id, fromMy],
   );
 
   if (loading) {
@@ -112,6 +117,7 @@ export default function Listing() {
     haptic.tap();
     openTelegramChat(seller.username);
   };
+  const edit = () => navigate("/create", { state: { editing: l } });
   const share = async () => {
     const url = `${window.location.origin}/listing/${l.id}`;
     try {
@@ -155,12 +161,16 @@ export default function Listing() {
           <button
             type="button"
             className="action action--primary"
-            onClick={write}
+            onClick={fromMy ? edit : write}
           >
             <span className="action__circle">
-              <MessageCircle size={19} strokeWidth={2.4} />
+              {fromMy ? (
+                <Pencil size={19} strokeWidth={2.4} />
+              ) : (
+                <MessageCircle size={19} strokeWidth={2.4} />
+              )}
             </span>
-            Написать
+            {fromMy ? "Редактировать" : "Написать"}
           </button>
           <button
             type="button"
@@ -243,26 +253,27 @@ export default function Listing() {
         </div>
       </div>
 
-      <div className="section">
-        <div className="section__header">Продавец</div>
-        <div className="section__body">
-          <Link to={`/user/${seller.id}`} className="cell">
-            <img
-              className="avatar"
-              src={seller.avatar}
-              alt=""
-              width={36}
-              height={36}
-            />
-            <div className="cell__body">
-              <div
-                className="cell__title"
-                style={{ display: "flex", alignItems: "center", gap: 4 }}
-              >
-                {seller.name}
-                <KycMark user={seller} />
-              </div>
-              {/* <div
+      {!fromMy && (
+        <div className="section">
+          <div className="section__header">Продавец</div>
+          <div className="section__body">
+            <Link to={`/user/${seller.id}`} className="cell">
+              <img
+                className="avatar"
+                src={seller.avatar}
+                alt=""
+                width={36}
+                height={36}
+              />
+              <div className="cell__body">
+                <div
+                  className="cell__title"
+                  style={{ display: "flex", alignItems: "center", gap: 4 }}
+                >
+                  {seller.name}
+                  <KycMark user={seller} />
+                </div>
+                {/* <div
                 className="cell__subtitle"
                 style={{ display: "flex", alignItems: "center", gap: 6 }}
               >
@@ -273,25 +284,30 @@ export default function Listing() {
                 · {seller.reviewsCount}{" "}
                 {plural(seller.reviewsCount, "отзыв", "отзыва", "отзывов")}
               </div> */}
-              <div className="row_cell">
-                <Clock size={16} color="var(--hint)" />
-                <div className="cell__body t-sub hint">
-                  {formatLastSeen(seller.lastSeenAt)}
+                <div className="row_cell">
+                  <Clock size={16} color="var(--hint)" />
+                  <div className="cell__body t-sub hint">
+                    {formatLastSeen(seller.lastSeenAt)}
+                  </div>
                 </div>
               </div>
-            </div>
-            <ChevronRight size={18} className="cell__chev" strokeWidth={2.4} />
-          </Link>
-          {seller.kyc === "verified" && (
-            <div className="cell">
-              <ShieldCheck size={16} color="var(--success)" />
-              <div className="cell__body t-sub">Личность подтверждена</div>
-            </div>
-          )}
+              <ChevronRight
+                size={18}
+                className="cell__chev"
+                strokeWidth={2.4}
+              />
+            </Link>
+            {seller.kyc === "verified" && (
+              <div className="cell">
+                <ShieldCheck size={16} color="var(--success)" />
+                <div className="cell__body t-sub">Личность подтверждена</div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {similar.data && similar.data.length > 0 && (
+      {!fromMy && similar.data && similar.data.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div className="section" style={{ marginBottom: 0 }}>
             <div className="section__header">Похожие рядом</div>
@@ -306,7 +322,11 @@ export default function Listing() {
         </div>
       )}
 
-      <MainAction text="Написать продавцу" onClick={write} grouped />
+      <MainAction
+        text={fromMy ? "Редактировать" : "Написать продавцу"}
+        onClick={fromMy ? edit : write}
+        grouped
+      />
     </div>
   );
 }

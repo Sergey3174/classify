@@ -139,6 +139,28 @@ export const api = {
     return wait(l, 800)
   },
 
+  async updateListing(id: string, d: ListingDraft): Promise<Listing> {
+    const current = db.find((l) => l.id === id)
+    if (!current || current.sellerId !== ME_ID) throw new Error('Объявление недоступно для редактирования')
+    if (current.status === 'moderation') throw new Error('Нельзя редактировать объявление, которое находится на проверке')
+    const updated: Listing = {
+      ...current,
+      title: d.title.trim(),
+      description: d.description.trim(),
+      price: d.negotiable || !d.price ? null : Number(d.price),
+      currency: currencyOf(d.cityId!),
+      categoryId: d.categoryId!,
+      dealType: d.dealType,
+      cityId: d.cityId!,
+      district: d.district || undefined,
+      photos: [...d.photos],
+      condition: d.condition,
+      delivery: d.delivery,
+      attributes: listingAttributes(d.categoryId, d.attributes),
+    }
+    db = db.map((l) => l.id === id ? updated : l)
+    return wait(updated)
+  },
   async setStatus(id: string, status: Listing['status']) {
     db = db.map((l) => (l.id === id ? { ...l, status } : l))
     return wait(true)

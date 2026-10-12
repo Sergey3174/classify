@@ -1,6 +1,6 @@
 import { Check, ChevronRight, CircleCheck, ImagePlus, X } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import {
   categoryAttributes,
@@ -41,7 +41,9 @@ const PHOTOS_MAX = 10;
 export default function Create() {
   const navigate = useNavigate();
   const goBack = useGoBack();
-  const { location } = useApp();
+  const { location, showToast } = useApp();
+  const { state } = useLocation();
+  const editing = (state as { editing?: Listing } | null)?.editing;
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<Listing | null>(null);
@@ -49,7 +51,20 @@ export default function Create() {
   const [startedAt] = useState(() => new Date().toISOString());
   // rules open in a sheet here: leaving the wizard for /rules would lose the draft
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [d, setD] = useState<ListingDraft>({
+  const [d, setD] = useState<ListingDraft>(editing ? {
+    categoryId: editing.categoryId,
+    dealType: editing.dealType,
+    attributes: Object.fromEntries(editing.attributes.map(({ label, value }) => [label, value])),
+    photos: [...editing.photos],
+    title: editing.title,
+    description: editing.description,
+    price: editing.price == null ? '' : String(editing.price),
+    negotiable: editing.price == null,
+    condition: editing.condition,
+    cityId: editing.cityId,
+    district: editing.district ?? '',
+    delivery: !!editing.delivery,
+  } : {
     attributes: {},
     photos: [],
     title: "",
@@ -84,11 +99,23 @@ export default function Create() {
       return;
     }
     setBusy(true);
-    const created = await api.createListing(d);
-    setBusy(false);
-    haptic.success();
-    setDone(created);
-  }, [step, d]);
+    try {
+      if (editing) {
+        await api.updateListing(editing.id, d);
+        haptic.success();
+        showToast('Изменения сохранены');
+        navigate(`/listing/${editing.id}`, { replace: true, state: { from: '/my' } });
+      } else {
+        const created = await api.createListing(d);
+        haptic.success();
+        setDone(created);
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Не удалось сохранить объявление');
+    } finally {
+      setBusy(false);
+    }
+  }, [step, d, editing, navigate, showToast]);
 
   const back = async () => {
     if (done) return navigate("/", { replace: true });
@@ -163,7 +190,7 @@ export default function Create() {
   return (
     <div className="page page--grouped">
       <AppBar
-        title="Новое объявление"
+        title={editing ? "Редактировать объявление" : "Новое объявление"}
         sub={`Шаг ${step + 1} из ${STEPS.length} · ${STEPS[step]}`}
         back={back}
       />
@@ -555,7 +582,7 @@ export default function Create() {
 
       {step > 0 && (
         <MainAction
-          text={step === STEPS.length - 1 ? "Опубликовать" : "Продолжить"}
+          text={step === STEPS.length - 1 ? (editing ? "Сохранить" : "Опубликовать") : "Продолжить"}
           onClick={next}
           disabled={!valid}
           loading={busy}
