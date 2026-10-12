@@ -29,6 +29,12 @@ const matchesQuery = (l: Listing, q?: string) => {
   return words.every((w) => text.includes(w))
 }
 
+const matchesAttributes = (listing: Listing, filters: Pick<ListingFilters, 'categoryId' | 'attributes'>) => {
+  const normalize = (value: string) => value.trim().toLocaleLowerCase('ru-RU').replace(/\s+/g, '')
+  return listingAttributes(filters.categoryId, filters.attributes).every((filter) => listing.attributes.some(
+    (attribute) => attribute.label === filter.label && normalize(attribute.value) === normalize(filter.value),
+  ))
+}
 /** Listings an alert would have notified about: active, matching, published after the alert was created. */
 const alertMatches = (a: Alert) =>
   db
@@ -41,6 +47,8 @@ const alertMatches = (a: Alert) =>
         (!a.condition || l.condition === a.condition) &&
         (a.priceTo == null || (l.price != null && l.price <= a.priceTo)) &&
         matchesQuery(l, a.query) &&
+        (!a.dealType || !supportsDealTypeFilter(a.categoryId) || l.dealType === a.dealType) &&
+        matchesAttributes(l, a) &&
         l.createdAt > a.createdAt,
     )
     .sort((x, y) => y.createdAt.localeCompare(x.createdAt))
@@ -66,13 +74,7 @@ export const api = {
     if (f.delivery && supportsDelivery(f.categoryId)) res = res.filter((l) => l.delivery)
     if (f.priceFrom != null) res = res.filter((l) => l.price != null && l.price >= f.priceFrom!)
     if (f.priceTo != null) res = res.filter((l) => l.price != null && l.price <= f.priceTo!)
-    const attributeFilters = listingAttributes(f.categoryId, f.attributes)
-    const normalizeAttribute = (value: string) => value.trim().toLocaleLowerCase('ru-RU').replace(/\s+/g, '')
-    if (attributeFilters.length) {
-      res = res.filter((l) => attributeFilters.every((filter) => l.attributes.some(
-        (attribute) => attribute.label === filter.label && normalizeAttribute(attribute.value) === normalizeAttribute(filter.value),
-      )))
-    }
+    res = res.filter((l) => matchesAttributes(l, f))
     const sort = f.sort ?? 'new'
     res.sort((a, b) => {
       if (sort === 'cheap') return price(a) - price(b)
@@ -169,7 +171,7 @@ export const api = {
   async createAlert(d: AlertDraft): Promise<Alert> {
     if (activeAlerts() >= MAX_ACTIVE_ALERTS) throw new Error(ALERT_LIMIT_TEXT)
     const now = NOW()
-    const a: Alert = { ...d, query: d.query.trim(), id: `a${Date.now()}`, active: true, createdAt: now, seenAt: now }
+    const a: Alert = { ...d, attributes: Object.fromEntries(listingAttributes(d.categoryId, d.attributes).map(({ label, value }) => [label, value])), dealType: supportsDealTypeFilter(d.categoryId) ? d.dealType : undefined, query: d.query.trim(), id: `a${Date.now()}`, active: true, createdAt: now, seenAt: now }
     alertsDb = [a, ...alertsDb]
     return wait(a, 500)
   },

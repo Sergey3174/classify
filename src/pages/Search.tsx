@@ -293,6 +293,8 @@ export default function Search() {
             district: location.district ?? undefined,
             priceTo: filters.priceTo,
             condition: filters.condition,
+            dealType: effective.dealType,
+            attributes: effective.attributes,
           }}
           onClose={() => setAlerting(false)}
         />

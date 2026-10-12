@@ -119,6 +119,8 @@ export interface ListingDraft {
  * listing appears, the bot sends the user a message.
  */
 export interface Alert {
+  dealType?: DealType
+  attributes?: Record<string, string>
   id: string
   query: string // «MacBook M2»; may be empty when a category is chosen
   categoryId?: CategoryId
@@ -131,7 +133,7 @@ export interface Alert {
   seenAt: string // ISO; matches published after this are «новые»
 }
 
-export type AlertDraft = Pick<Alert, 'query' | 'categoryId' | 'cityId' | 'district' | 'priceTo' | 'condition'>
+export type AlertDraft = Pick<Alert, 'query' | 'categoryId' | 'cityId' | 'district' | 'priceTo' | 'condition' | 'dealType' | 'attributes'>
 
 export interface AlertSummary extends Alert {
   matches: number

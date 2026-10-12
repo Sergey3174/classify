@@ -514,6 +514,8 @@ export function AlertSheet({
     district: initial?.district ?? location.district ?? undefined,
     priceTo: initial?.priceTo,
     condition: initial?.condition,
+    dealType: supportsDealTypeFilter(initial?.categoryId) ? initial?.dealType : undefined,
+    attributes: initial?.categoryId ? initial?.attributes : undefined,
   });
   const [busy, setBusy] = useState(false);
   const existing = useAsync(() => api.getAlerts(), []);
@@ -523,6 +525,7 @@ export function AlertSheet({
     setD((prev) => ({ ...prev, ...patch }));
   const city = cities.find((c) => c.id === d.cityId)!;
   const cur = currencies[city.currency];
+  const fields = d.categoryId ? categoryAttributes[d.categoryId] : [];
   const valid = d.query.trim().length >= 2 || !!d.categoryId;
 
   const submit = async () => {
@@ -595,7 +598,7 @@ export function AlertSheet({
           type="button"
           className="chip"
           aria-pressed={!d.categoryId}
-          onClick={() => set({ categoryId: undefined })}
+          onClick={() => set({ categoryId: undefined, attributes: undefined })}
         >
           Любая
         </button>
@@ -607,7 +610,7 @@ export function AlertSheet({
             aria-pressed={d.categoryId === c.id}
             onClick={() => {
               haptic.select();
-              set({ categoryId: c.id });
+              set({ categoryId: c.id, attributes: c.id === d.categoryId ? d.attributes : undefined, dealType: supportsDealTypeFilter(c.id) ? d.dealType : undefined });
             }}
           >
             {d.categoryId !== c.id && <CategoryIcon id={c.id} size={16} />}
@@ -615,6 +618,55 @@ export function AlertSheet({
           </button>
         ))}
       </div>
+
+      {supportsDealTypeFilter(d.categoryId) && (
+      <div className="section">
+        <div className="section__header">Тип объявления</div>
+        <Segmented<"any" | DealType>
+          value={d.dealType ?? "any"}
+          options={[
+            { value: "any", label: "Любое" },
+            { value: "rent", label: "Аренда" },
+            { value: "sale", label: "Продажа" },
+          ]}
+          onChange={(v) => set({ dealType: v === "any" ? undefined : v })}
+        />
+      </div>
+      )}
+
+      {fields.length > 0 && (
+        <div className="section">
+          <div className="section__header">Характеристики</div>
+          <div className="section__body">
+            {fields.map(([label, placeholder]) => (
+              <AttributeFilterField
+                key={label}
+                label={label}
+                placeholder={placeholder}
+                value={d.attributes?.[label] ?? ""}
+                onChange={(value) =>
+                  set({ attributes: { ...d.attributes, [label]: value } })
+                }
+                options={[
+                  ...new Set(
+                    seedListings
+                      .filter((l) => l.categoryId === d.categoryId)
+                      .flatMap((l) =>
+                        l.attributes
+                          .filter((a) => a.label === label)
+                          .map((a) => a.value),
+                      ),
+                  ),
+                ]}
+              />
+            ))}
+          </div>
+          <div className="section__footer">
+            Выберите или введите точное значение. Ненужные поля оставьте
+            пустыми.
+          </div>
+        </div>
+      )}
 
       <div className="section" style={{ marginBottom: 8 }}>
         <div className="section__header">Где</div>

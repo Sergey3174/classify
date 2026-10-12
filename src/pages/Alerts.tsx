@@ -35,6 +35,7 @@ function alertWhere(a: Alert, withCategory = true) {
       ? `до ${formatMoney(a.priceTo, currencyOf(a.cityId))}`
       : null,
     a.condition ? (a.condition === "new" ? "новое" : "б/у") : null,
+    a.dealType ? (a.dealType === "rent" ? "аренда" : "продажа") : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -275,6 +276,20 @@ export function AlertDetail() {
           </div>
         </div>
       </div>
+
+      {Object.values(a.attributes ?? {}).some((value) => value.trim()) && (
+        <div className="section">
+          <div className="section__header">Характеристики</div>
+          <div className="section__body">
+            {Object.entries(a.attributes ?? {}).filter(([, value]) => value.trim()).map(([label, value]) => (
+              <div className="cell" key={label}>
+                <div className="cell__body cell__title">{label}</div>
+                <div className="cell__value" style={{ maxWidth: '60%', whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="section" style={{ marginBottom: 8 }}>
         <div className="section__header section__header--row">
