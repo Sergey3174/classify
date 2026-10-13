@@ -1,3 +1,4 @@
+import { ReportSheet } from "../components/ReportSheet";
 import {
   ChevronRight,
   Clock,
@@ -18,7 +19,13 @@ import { AppBar, Empty, MainAction } from "../components/Chrome";
 import { KycMark } from "../components/Kyc";
 import { ListingCard } from "../components/ListingCard";
 import { useApp } from "../store/useApp";
-import { haptic, isTelegram, listingMiniAppUrl, openTelegramChat, tg } from "../telegram/telegram";
+import {
+  haptic,
+  isTelegram,
+  listingMiniAppUrl,
+  openTelegramChat,
+  tg,
+} from "../telegram/telegram";
 import {
   formatLastSeen,
   formatAgo,
@@ -67,6 +74,7 @@ export default function Listing() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const fromMy = state?.from === "/my";
+  const [reporting, setReporting] = useState(false);
   const { isFavorite, toggleFavorite, showToast } = useApp();
   const { data, loading, error } = useAsync(() => api.getListing(id), [id]);
   const similar = useAsync(
@@ -200,7 +208,7 @@ export default function Listing() {
           <button
             type="button"
             className="action"
-            onClick={() => showToast("Жалоба отправлена модератору")}
+            onClick={() => setReporting(true)}
           >
             <span className="action__circle">
               <Flag size={18} strokeWidth={2.4} />
@@ -326,6 +334,13 @@ export default function Listing() {
         </div>
       )}
 
+      {reporting && (
+        <ReportSheet
+          key={l.id}
+          listingId={l.id}
+          onClose={() => setReporting(false)}
+        />
+      )}
       <MainAction
         text={fromMy ? "Редактировать" : "Написать продавцу"}
         onClick={fromMy ? edit : write}

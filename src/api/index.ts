@@ -14,6 +14,10 @@ import type { Alert, AlertDraft, AlertSummary, Listing, ListingDraft, ListingFil
 const DELAY = 350
 const wait = <T,>(value: T, ms = DELAY) => new Promise<T>((r) => setTimeout(() => r(structuredClone(value)), ms))
 
+export const REPORT_TEXT_MAX = 1000
+// Demo reports live only in memory until a real moderation API is connected.
+const reportsDb: { id: string; listingId: string; reporterId: string; text: string; createdAt: string }[] = []
+
 let db: Listing[] = [...seed]
 let alertsDb: Alert[] = [...seedAlerts]
 /** «Ищу»: at most this many active alerts per person; alerts cannot be edited, only deleted. */
@@ -63,6 +67,16 @@ const summarize = (a: Alert): AlertSummary => {
 const price = (l: Listing) => l.price ?? 0
 
 export const api = {
+  async reportListing(listingId: string, text: string) {
+    const trimmed = text.trim()
+    if (!trimmed) throw new Error('Опишите причину жалобы')
+    if (text.length > REPORT_TEXT_MAX) throw new Error('Текст жалобы слишком длинный')
+    if (!db.some((listing) => listing.id === listingId)) throw new Error('Объявление не найдено')
+    const report = { id: `report-${reportsDb.length + 1}`, listingId, reporterId: ME_ID, text: trimmed, createdAt: new Date().toISOString() }
+    reportsDb.push(report)
+    return wait(report, 500)
+  },
+
   async getListings(f: ListingFilters = {}): Promise<Listing[]> {
     let res = db.filter((l) => l.status === 'active' && matchesQuery(l, f.query))
     if (f.categoryId) res = res.filter((l) => l.categoryId === f.categoryId)
