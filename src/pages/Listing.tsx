@@ -1,3 +1,4 @@
+import { ME_ID } from "../mocks/users";
 import { ReportSheet } from "../components/ReportSheet";
 import {
   ChevronRight,
@@ -120,6 +121,7 @@ export default function Listing() {
   }
 
   const { listing: l, seller } = data;
+  const isOwnListing = l.sellerId === ME_ID;
   const fav = isFavorite(l.id);
   const write = () => {
     haptic.tap();
@@ -205,6 +207,7 @@ export default function Listing() {
             </span>
             Поделиться
           </button>
+          {!isOwnListing && (
           <button
             type="button"
             className="action"
@@ -215,6 +218,7 @@ export default function Listing() {
             </span>
             Жалоба
           </button>
+          )}
         </div>
       </div>
 
@@ -334,18 +338,20 @@ export default function Listing() {
         </div>
       )}
 
-      {reporting && (
+      {reporting && !isOwnListing && (
         <ReportSheet
           key={l.id}
           listingId={l.id}
           onClose={() => setReporting(false)}
         />
       )}
+      {!reporting && (
       <MainAction
         text={fromMy ? "Редактировать" : "Написать продавцу"}
         onClick={fromMy ? edit : write}
         grouped
       />
+      )}
     </div>
   );
 }
