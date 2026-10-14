@@ -2,7 +2,8 @@ import { ChevronLeft, CircleCheck } from 'lucide-react'
 import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useGoBack } from '../navigation'
-import { ME_ID, userById } from '../mocks/users'
+import { useCurrentUser } from '../store/useCurrentUser'
+import { UserAvatar } from './UserAvatar'
 import { useApp } from '../store/useApp'
 import { useMainButton } from '../telegram/hooks'
 import { isTelegram } from '../telegram/telegram'
@@ -54,10 +55,10 @@ function BackLink({ onBack }: { onBack?: () => void }) {
 }
 
 function ProfileLink() {
-  const me = userById(ME_ID)!
+  const me = useCurrentUser()
   return (
     <Link to="/me" aria-label="Профиль" className="appbar__side">
-      <img className="avatar" src={me.avatar} alt="" width={28} height={28} />
+      <UserAvatar src={me.avatar} size={28} />
     </Link>
   )
 }

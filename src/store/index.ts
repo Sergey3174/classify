@@ -1,12 +1,19 @@
+import { userReducer } from "./userSlice";
 import { configureStore } from "@reduxjs/toolkit";
+import { backendApi } from "../api/backend";
 import { geoApi } from "../api/geolocation";
 import { loadLocation, locationReducer } from "./locationSlice";
 
 export const store = configureStore({
-  reducer: { location: locationReducer, [geoApi.reducerPath]: geoApi.reducer },
+  reducer: {
+    location: locationReducer,
+    user: userReducer,
+    [geoApi.reducerPath]: geoApi.reducer,
+    [backendApi.reducerPath]: backendApi.reducer,
+  },
   preloadedState: { location: { selected: loadLocation() } },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(geoApi.middleware),
+    getDefaultMiddleware().concat(geoApi.middleware, backendApi.middleware),
 });
 
 let previousLocation = store.getState().location.selected;

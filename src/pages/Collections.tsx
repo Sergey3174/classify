@@ -1,3 +1,5 @@
+import { useCurrentUser } from "../store/useCurrentUser";
+import { UserAvatar } from "../components/UserAvatar";
 import { PromoteSheet } from "../components/PromoteSheet";
 import {
   Archive,
@@ -16,7 +18,7 @@ import {
   // Star,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import {
   AppBar,
@@ -318,6 +320,8 @@ export function UserProfile() {
     );
   }
 
+  if (id === ME_ID) return <Navigate to="/me" replace />;
+
   const { user, listings } = data;
   return (
     <div className="page page--grouped">
@@ -442,34 +446,21 @@ export function Me() {
   const { location } = useApp();
   const [picking, setPicking] = useState(false);
   const [notify, setNotify] = useState(true);
-  const me = useAsync(() => api.getUser(ME_ID), []);
+  const user = useCurrentUser();
+  const kyc = useAsync(() => api.getKyc(), []);
   const mine = useAsync(() => api.getMyListings(), []);
-  const user = me.data?.user;
 
   return (
     <div className="page page--grouped">
       <AppBar back title="Мой профиль" sub="Настройки" />
       <div className="profile__head">
-        {user ? (
-          <img
-            className="avatar"
-            src={user.avatar}
-            alt=""
-            width={72}
-            height={72}
-          />
-        ) : (
-          <div
-            className="skeleton"
-            style={{ width: 72, height: 72, borderRadius: "50%" }}
-          />
-        )}
+        <UserAvatar src={user.avatar} size={72} />
         <div className="profile__name t-title2">
-          {user?.name ?? "…"}
-          {user && <KycMark user={user} size={18} />}
+          {user.name}
+          {kyc.data && <KycMark user={{ kyc: kyc.data }} size={18} />}
         </div>
         <div className="t-sub hint">
-          {user ? `@${user.username}` : "\u00a0"}
+          {user.username ? `@${user.username}` : "\u00a0"}
         </div>
       </div>
 
@@ -500,14 +491,14 @@ export function Me() {
             </span>
             <div className="cell__body cell__title">Проверка личности</div>
             <div
-              className={`cell__value${user?.kyc === "verified" ? "" : " hint"}`}
+              className={`cell__value${kyc.data === "verified" ? "" : " hint"}`}
             >
-              {user
+              {kyc.data
                 ? {
                     verified: "Пройдена",
                     pending: "На проверке",
                     none: "Не пройдена",
-                  }[user.kyc]
+                  }[kyc.data]
                 : ""}
             </div>
             <ChevronRight size={18} strokeWidth={2.4} className="cell__chev" />

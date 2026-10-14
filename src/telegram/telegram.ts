@@ -63,6 +63,7 @@ export function listingMiniAppUrl(id: string) {
 
 export function initTelegram() {
   if (!tg) return
+  console.log('Telegram initDataUnsafe:', tg.initDataUnsafe)
   const startParam = tg.initDataUnsafe.start_param
     ?? new URLSearchParams(window.location.search).get('tgWebAppStartParam')
   const listingId = /^listing_([A-Za-z0-9_-]{1,504})$/.exec(startParam ?? '')?.[1]

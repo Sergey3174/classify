@@ -1,3 +1,5 @@
+import { useCurrentUser } from "../store/useCurrentUser";
+import { UserAvatar } from "../components/UserAvatar";
 import { ME_ID } from "../mocks/users";
 import { ReportSheet } from "../components/ReportSheet";
 import {
@@ -71,6 +73,7 @@ function Gallery({ photos, title }: { photos: string[]; title: string }) {
 }
 
 export default function Listing() {
+  const me = useCurrentUser();
   const { id = "" } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -273,20 +276,14 @@ export default function Listing() {
         <div className="section">
           <div className="section__header">Продавец</div>
           <div className="section__body">
-            <Link to={`/user/${seller.id}`} className="cell">
-              <img
-                className="avatar"
-                src={seller.avatar}
-                alt=""
-                width={36}
-                height={36}
-              />
+            <Link to={isOwnListing ? "/me" : `/user/${seller.id}`} className="cell">
+              <UserAvatar src={isOwnListing ? me.avatar : seller.avatar} size={36} />
               <div className="cell__body">
                 <div
                   className="cell__title"
                   style={{ display: "flex", alignItems: "center", gap: 4 }}
                 >
-                  {seller.name}
+                  {isOwnListing ? me.name : seller.name}
                   <KycMark user={seller} />
                 </div>
                 {/* <div

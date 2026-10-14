@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { AppBar, MainAction } from '../components/Chrome'
 import { KycMark } from '../components/Kyc'
-import { ME_ID, userById } from '../mocks/users'
+import { useCurrentUser } from '../store/useCurrentUser'
+import { UserAvatar } from '../components/UserAvatar'
 import { useApp } from '../store/useApp'
 import { haptic } from '../telegram/telegram'
 import type { KycStatus } from '../types'
@@ -28,7 +29,7 @@ export default function Kyc() {
   const { showToast } = useApp()
   const [status, setStatus] = useState<KycStatus | null>(null)
   const [busy, setBusy] = useState(false)
-  const me = userById(ME_ID)!
+  const me = useCurrentUser()
 
   useEffect(() => {
     let alive = true
@@ -96,7 +97,7 @@ export default function Kyc() {
             <div className="section__header">Так вас увидят покупатели</div>
             <div className="section__body">
               <div className="cell">
-                <img className="avatar" src={me.avatar} alt="" width={36} height={36} />
+                <UserAvatar src={me.avatar} size={36} />
                 <div className="cell__body">
                   <div className="cell__title" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     {me.name}
